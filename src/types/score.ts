@@ -7,14 +7,6 @@ export type GameModeId =
 
 export type ModeBestScores = Record<GameModeId, number>;
 
-export interface AuthenticatedUserProfile {
-  displayName: string;
-  email: string;
-  photoUrl: string | null;
-  provider: "google";
-  uid: string;
-}
-
 export interface UserBestScoreDocument {
   bestScore: number;
   modeId: GameModeId;

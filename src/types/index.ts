@@ -17,7 +17,6 @@ export type {
 } from "@/src/types/player";
 export type { GameModeId, ModeBestScores } from "@/src/types/score";
 export type {
-  AuthenticatedUserProfile,
   GameSessionDocument,
   LeaderboardDocument,
   LeaderboardEntry,
@@ -25,3 +24,7 @@ export type {
   UserGameStatsDocument,
 } from "@/src/types/score";
 export type { LocalCdlDataSet, LocalCdlTeamRecord, Team } from "@/src/types/team";
+export type {
+  AuthenticatedUserProfile,
+  UserProfileDocument,
+} from "@/src/types/user";

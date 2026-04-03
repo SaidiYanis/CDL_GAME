@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GoogleAuthCard } from "@/src/features/auth/components/google-auth-card";
 import { GAME_MODES } from "@/src/features/modes/constants/game-modes";
 
 export function ModeSelectScreen() {
@@ -27,6 +28,8 @@ export function ModeSelectScreen() {
               Retour accueil
             </Link>
           </div>
+
+          <GoogleAuthCard />
         </header>
 
         <section className="grid gap-5 lg:grid-cols-2">

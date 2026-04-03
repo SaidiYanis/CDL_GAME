@@ -1,17 +1,38 @@
 import { getAnalytics, isSupported, type Analytics } from "firebase/analytics";
-import { getApp, getApps, initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  getApp,
+  getApps,
+  initializeApp,
+  type FirebaseApp,
+} from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
 import { firebaseConfig } from "@/src/lib/firebase/config";
 
-export const firebaseApp =
-  getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+function hasFirebaseConfig(): boolean {
+  return Boolean(
+    firebaseConfig.apiKey &&
+      firebaseConfig.appId &&
+      firebaseConfig.authDomain &&
+      firebaseConfig.projectId,
+  );
+}
 
-export const firebaseAuth = getAuth(firebaseApp);
-export const firebaseDb = getFirestore(firebaseApp);
+export const firebaseApp: FirebaseApp | null = hasFirebaseConfig()
+  ? getApps().length > 0
+    ? getApp()
+    : initializeApp(firebaseConfig)
+  : null;
+
+export const firebaseAuth: Auth | null = firebaseApp
+  ? getAuth(firebaseApp)
+  : null;
+export const firebaseDb: Firestore | null = firebaseApp
+  ? getFirestore(firebaseApp)
+  : null;
 
 export async function getFirebaseAnalytics(): Promise<Analytics | null> {
-  if (typeof window === "undefined") {
+  if (!firebaseApp || typeof window === "undefined") {
     return null;
   }
 

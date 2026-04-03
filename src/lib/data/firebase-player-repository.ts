@@ -69,11 +69,21 @@ const teamConverter: FirestoreDataConverter<Team> = {
   },
 };
 
+function getFirebaseDbOrThrow() {
+  if (!firebaseDb) {
+    throw new Error("Firebase Firestore n'est pas configure.");
+  }
+
+  return firebaseDb;
+}
+
 export class FirebasePlayerRepository implements PlayerRepository {
   async getPlayers(): Promise<Player[]> {
+    const db = getFirebaseDbOrThrow();
+
     const playersSnapshot = await getDocs(
       query(
-        collection(firebaseDb, "players").withConverter(playerConverter),
+        collection(db, "players").withConverter(playerConverter),
         orderBy("name", "asc"),
       ),
     );
@@ -82,10 +92,12 @@ export class FirebasePlayerRepository implements PlayerRepository {
   }
 
   async getTeams(): Promise<Team[]> {
+    const db = getFirebaseDbOrThrow();
+
     const [teamsSnapshot, players] = await Promise.all([
       getDocs(
         query(
-          collection(firebaseDb, "teams").withConverter(teamConverter),
+          collection(db, "teams").withConverter(teamConverter),
           orderBy("name", "asc"),
         ),
       ),
