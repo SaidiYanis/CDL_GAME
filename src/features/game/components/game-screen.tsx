@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnswerInput } from "@/src/features/game/components/answer-input";
 import { AnswerOptions } from "@/src/features/game/components/answer-options";
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
+import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { PlayerCard } from "@/src/features/game/components/player-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
@@ -13,7 +14,11 @@ import {
   submitSurvivalAnswer,
 } from "@/src/features/game/utils/survival-game";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
+import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
+import { normalizeAnswer } from "@/src/lib/utils/normalize-answer";
 import type { GameState, Player, Team } from "@/src/types";
+
+const ANSWER_FEEDBACK_DELAY_MS = 280;
 
 interface GameScreenProps {
   players: Player[];
@@ -21,6 +26,11 @@ interface GameScreenProps {
 }
 
 export function GameScreen({ players, teams }: GameScreenProps) {
+  const feedbackTimeoutRef = useRef<number | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [feedbackStatus, setFeedbackStatus] = useState<
+    "correct" | "incorrect" | null
+  >(null);
   const [gameState, setGameState] = useState<GameState>(() =>
     startSurvivalGame(
       players,
@@ -43,13 +53,54 @@ export function GameScreen({ players, teams }: GameScreenProps) {
     status: gameState.status,
   });
 
-  function handleSubmitAnswer(answer: string) {
-    setGameState((currentState) =>
-      submitSurvivalAnswer(currentState, players, answer),
-    );
-  }
+  useEffect(
+    () => () => {
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  const handleSubmitAnswer = useCallback(
+    (answer: string) => {
+      if (!gameState.currentQuestion || feedbackStatus) {
+        return;
+      }
+
+      const isCorrectAnswer =
+        normalizeAnswer(answer) ===
+        normalizeAnswer(gameState.currentQuestion.correctAnswer);
+
+      playGameFeedbackSound(isCorrectAnswer ? "win" : "lose");
+
+      if (gameState.currentQuestion.mode === "free-input") {
+        setGameState((currentState) =>
+          submitSurvivalAnswer(currentState, players, answer),
+        );
+        return;
+      }
+
+      setSelectedAnswer(answer);
+      setFeedbackStatus(isCorrectAnswer ? "correct" : "incorrect");
+
+      feedbackTimeoutRef.current = window.setTimeout(() => {
+        setGameState((currentState) =>
+          submitSurvivalAnswer(currentState, players, answer),
+        );
+
+        if (isCorrectAnswer) {
+          setSelectedAnswer(null);
+          setFeedbackStatus(null);
+        }
+      }, ANSWER_FEEDBACK_DELAY_MS);
+    },
+    [feedbackStatus, gameState.currentQuestion, players],
+  );
 
   function handleRestartGame() {
+    setSelectedAnswer(null);
+    setFeedbackStatus(null);
     setGameState(startSurvivalGame(players, gameState.bestScore));
   }
 
@@ -74,14 +125,17 @@ export function GameScreen({ players, teams }: GameScreenProps) {
 
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <section className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-        <PlayerCard
-          player={currentPlayer}
-          score={gameState.score}
-          team={currentTeam}
-        />
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        <GameModeNavigation />
 
-        <div className="flex flex-col gap-6">
+        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+          <PlayerCard
+            player={currentPlayer}
+            score={gameState.score}
+            team={currentTeam}
+          />
+
+          <div className="flex flex-col gap-6">
           <ScoreDisplay
             bestScore={gameState.bestScore}
             score={gameState.score}
@@ -98,15 +152,17 @@ export function GameScreen({ players, teams }: GameScreenProps) {
             <div className="mt-8">
               {currentQuestion.mode === "free-input" ? (
                 <AnswerInput
-                  disabled={isGameOver}
+                  disabled={isGameOver || feedbackStatus !== null}
                   onSubmitAnswer={handleSubmitAnswer}
                   playerId={currentQuestion.playerId}
                 />
               ) : (
                 <AnswerOptions
-                  disabled={isGameOver}
+                  disabled={isGameOver || feedbackStatus !== null}
+                  feedbackStatus={feedbackStatus}
                   onSelectAnswer={handleSubmitAnswer}
                   options={currentQuestion.options}
+                  selectedAnswer={selectedAnswer}
                 />
               )}
             </div>
@@ -120,6 +176,7 @@ export function GameScreen({ players, teams }: GameScreenProps) {
               score={gameState.score}
             />
           ) : null}
+          </div>
         </div>
       </section>
     </main>

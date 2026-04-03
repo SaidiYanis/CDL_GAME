@@ -16,8 +16,8 @@ export function ModeSelectScreen() {
                 Selectionne ton defi CDL.
               </h1>
               <p className="mt-5 text-lg leading-8 text-slate-300">
-                Un mode est deja jouable. Les autres sont prets dans la roadmap
-                et seront ajoutes une user story a la fois.
+                Lance un mode, enchaine les bonnes decisions et grimpe dans le
+                ranking global.
               </p>
             </div>
 

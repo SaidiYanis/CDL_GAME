@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DuelPlayerCard } from "@/src/features/game/components/duel-player-card";
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
+import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import {
@@ -10,8 +11,11 @@ import {
   submitTitleDuelAnswer,
 } from "@/src/features/game/utils/title-duel-game";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
+import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import type { DuelAnswer, DuelGameState, Player, Team } from "@/src/types";
+
+const DUEL_FEEDBACK_DELAY_MS = 280;
 
 interface TitleDuelScreenProps {
   players: Player[];
@@ -19,6 +23,11 @@ interface TitleDuelScreenProps {
 }
 
 export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
+  const feedbackTimeoutRef = useRef<number | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<DuelAnswer | null>(null);
+  const [feedbackStatus, setFeedbackStatus] = useState<
+    "correct" | "incorrect" | null
+  >(null);
   const [gameState, setGameState] = useState<DuelGameState>(() =>
     startTitleDuelGame(players, localScoreRepository.getBestScore("title-duel")),
   );
@@ -52,16 +61,45 @@ export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
     status: gameState.status,
   });
 
+  useEffect(
+    () => () => {
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
   const handleSubmitAnswer = useCallback(
     (answer: DuelAnswer) => {
-      setGameState((currentState) =>
-        submitTitleDuelAnswer(currentState, players, answer),
-      );
+      if (!gameState.currentQuestion || feedbackStatus) {
+        return;
+      }
+
+      const isCorrectAnswer =
+        answer === gameState.currentQuestion.correctAnswer;
+
+      setSelectedAnswer(answer);
+      setFeedbackStatus(isCorrectAnswer ? "correct" : "incorrect");
+      playGameFeedbackSound(isCorrectAnswer ? "win" : "lose");
+
+      feedbackTimeoutRef.current = window.setTimeout(() => {
+        setGameState((currentState) =>
+          submitTitleDuelAnswer(currentState, players, answer),
+        );
+
+        if (isCorrectAnswer) {
+          setSelectedAnswer(null);
+          setFeedbackStatus(null);
+        }
+      }, DUEL_FEEDBACK_DELAY_MS);
     },
-    [players],
+    [feedbackStatus, gameState.currentQuestion, players],
   );
 
   const handleRestartGame = useCallback(() => {
+    setSelectedAnswer(null);
+    setFeedbackStatus(null);
     setGameState(startTitleDuelGame(players, gameState.bestScore));
   }, [gameState.bestScore, players]);
 
@@ -77,6 +115,7 @@ export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+        <GameModeNavigation />
         <ScoreDisplay
           bestScore={gameState.bestScore}
           score={gameState.score}
@@ -92,25 +131,46 @@ export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
             <button
               type="button"
-              disabled={isGameOver}
+              disabled={isGameOver || feedbackStatus !== null}
               onClick={() => handleSubmitAnswer("left")}
-              className="rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className={`rounded-full px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+                selectedAnswer === "left" && feedbackStatus === "correct"
+                  ? "bg-emerald-400 text-slate-950"
+                  : selectedAnswer === "left" &&
+                      feedbackStatus === "incorrect"
+                    ? "bg-rose-500 text-white"
+                    : "bg-emerald-400 text-slate-950 hover:bg-emerald-300"
+              }`}
             >
               {leftPlayer.name}
             </button>
             <button
               type="button"
-              disabled={isGameOver}
+              disabled={isGameOver || feedbackStatus !== null}
               onClick={() => handleSubmitAnswer("same")}
-              className="rounded-full border border-white/15 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-white/30 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-60"
+              className={`rounded-full border px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+                selectedAnswer === "same" && feedbackStatus === "correct"
+                  ? "border-emerald-300/70 bg-emerald-400/15 text-emerald-100"
+                  : selectedAnswer === "same" &&
+                      feedbackStatus === "incorrect"
+                    ? "border-rose-300/70 bg-rose-500/15 text-rose-100"
+                    : "border-white/15 text-white hover:border-white/30 hover:bg-white/5"
+              }`}
             >
               Same
             </button>
             <button
               type="button"
-              disabled={isGameOver}
+              disabled={isGameOver || feedbackStatus !== null}
               onClick={() => handleSubmitAnswer("right")}
-              className="rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className={`rounded-full px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+                selectedAnswer === "right" && feedbackStatus === "correct"
+                  ? "bg-emerald-400 text-slate-950"
+                  : selectedAnswer === "right" &&
+                      feedbackStatus === "incorrect"
+                    ? "bg-rose-500 text-white"
+                    : "bg-emerald-400 text-slate-950 hover:bg-emerald-300"
+              }`}
             >
               {rightPlayer.name}
             </button>

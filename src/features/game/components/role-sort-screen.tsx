@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
+import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import {
@@ -12,6 +13,7 @@ import {
   type RoleAssignments,
 } from "@/src/features/game/utils/role-sort-game";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
+import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import type { Player, PlayerRole, RoleSortGameState, Team } from "@/src/types";
 
@@ -98,19 +100,15 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
   );
 
   const handleSubmitRound = useCallback(() => {
-    setSession((currentSession) => {
-      const nextGameState = submitRoleSortRound(
-        currentSession.gameState,
-        players,
-        currentSession.assignments,
-      );
+    const nextGameState = submitRoleSortRound(gameState, players, assignments);
 
-      return {
-        assignments: createEmptyRoleAssignments(nextGameState.currentQuestion),
-        gameState: nextGameState,
-      };
+    playGameFeedbackSound(nextGameState.status === "lost" ? "lose" : "win");
+
+    setSession({
+      assignments: createEmptyRoleAssignments(nextGameState.currentQuestion),
+      gameState: nextGameState,
     });
-  }, [players]);
+  }, [assignments, gameState, players]);
 
   const handleRestartGame = useCallback(() => {
     setSession((currentSession) => {
@@ -138,6 +136,7 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+        <GameModeNavigation />
         <ScoreDisplay
           bestScore={gameState.bestScore}
           score={gameState.score}

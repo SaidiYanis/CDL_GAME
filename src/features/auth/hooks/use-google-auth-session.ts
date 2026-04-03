@@ -1,6 +1,16 @@
 "use client";
 
-import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
+import {
+  browserLocalPersistence,
+  getRedirectResult,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  setPersistence,
+  signInWithPopup,
+  signInWithRedirect,
+  signOut,
+  type User,
+} from "firebase/auth";
 import { useCallback, useEffect, useState } from "react";
 import { firebaseUserProfileRepository } from "@/src/lib/data/firebase-user-profile-repository";
 import { firebaseAuth } from "@/src/lib/firebase/client";
@@ -15,9 +25,31 @@ interface GoogleAuthSessionState {
 
 const googleAuthProvider = new GoogleAuthProvider();
 
-function toUserProfile(
-  firebaseUser: NonNullable<typeof firebaseAuth>["currentUser"],
-): AuthenticatedUserProfile | null {
+googleAuthProvider.setCustomParameters({
+  prompt: "select_account",
+});
+
+function resolveAuthErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return "Connexion Google impossible.";
+  }
+
+  if (error.message.includes("auth/unauthorized-domain")) {
+    return "Domaine non autorise dans Firebase Auth. Ajoute localhost dans Authentication > Settings > Authorized domains.";
+  }
+
+  if (error.message.includes("auth/popup-blocked")) {
+    return "Popup Google bloquee par le navigateur. Une redirection va etre tentee.";
+  }
+
+  if (error.message.includes("auth/operation-not-allowed")) {
+    return "Provider Google non active dans Firebase Authentication.";
+  }
+
+  return error.message;
+}
+
+function toUserProfile(firebaseUser: User | null): AuthenticatedUserProfile | null {
   if (!firebaseUser?.email || !firebaseUser.displayName) {
     return null;
   }
@@ -50,16 +82,33 @@ export function useGoogleAuthSession() {
       return;
     }
 
+    void setPersistence(firebaseAuth, browserLocalPersistence).catch(() => {
+      // Keep auth usable even if browser storage persistence cannot be set.
+    });
+
+    void getRedirectResult(firebaseAuth).catch((error) => {
+      setAuthState((currentState) => ({
+        ...currentState,
+        errorMessage: resolveAuthErrorMessage(error),
+        isAuthReady: true,
+      }));
+    });
+
     return onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
       const userProfile = toUserProfile(firebaseUser);
+      let errorMessage: string | null = null;
 
       if (userProfile) {
-        await firebaseUserProfileRepository.saveUserProfile(userProfile);
+        try {
+          await firebaseUserProfileRepository.saveUserProfile(userProfile);
+        } catch (error) {
+          errorMessage = `Connecte a Google, mais sync profil Firestore impossible: ${resolveAuthErrorMessage(error)}`;
+        }
       }
 
       setAuthState((currentState) => ({
         ...currentState,
-        errorMessage: null,
+        errorMessage,
         isAuthReady: true,
         userProfile,
       }));
@@ -86,15 +135,29 @@ export function useGoogleAuthSession() {
       const userProfile = toUserProfile(authResult.user);
 
       if (userProfile) {
-        await firebaseUserProfileRepository.saveUserProfile(userProfile);
+        try {
+          await firebaseUserProfileRepository.saveUserProfile(userProfile);
+        } catch (error) {
+          setAuthState((currentState) => ({
+            ...currentState,
+            errorMessage: `Connexion Google OK, mais sync profil Firestore impossible: ${resolveAuthErrorMessage(error)}`,
+            userProfile,
+          }));
+        }
       }
     } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes("auth/popup-blocked") ||
+          error.message.includes("auth/operation-not-supported-in-this-environment"))
+      ) {
+        await signInWithRedirect(firebaseAuth, googleAuthProvider);
+        return;
+      }
+
       setAuthState((currentState) => ({
         ...currentState,
-        errorMessage:
-          error instanceof Error
-            ? error.message
-            : "Connexion Google impossible.",
+        errorMessage: resolveAuthErrorMessage(error),
       }));
     } finally {
       setAuthState((currentState) => ({
