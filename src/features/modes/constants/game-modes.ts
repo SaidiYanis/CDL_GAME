@@ -30,7 +30,7 @@ export const GAME_MODES: GameModeCard[] = [
   },
   {
     id: "title-duel",
-    title: "Plus de titres / same",
+    title: "Qui a le plus de titres",
     label: "Jouable",
     description:
       "Choisis quel joueur a le plus gros palmares, ou same en cas d'egalite.",

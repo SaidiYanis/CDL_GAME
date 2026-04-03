@@ -137,7 +137,7 @@ export function createNextTitleDuelQuestion(
       selectedPair.rightPlayer,
     ),
     leftPlayerId: selectedPair.leftPlayer.id,
-    prompt: "Plus de titres",
+    prompt: "Qui a le plus de titres",
     rightPlayerId: selectedPair.rightPlayer.id,
   };
 }

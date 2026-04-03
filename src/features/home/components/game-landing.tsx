@@ -49,6 +49,12 @@ export function GameLanding() {
               >
                 Choisir un mode
               </Link>
+              <Link
+                href="/roster"
+                className="inline-flex items-center justify-center rounded-full border border-white/10 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-200 transition-colors hover:border-emerald-400/40 hover:text-emerald-300"
+              >
+                Roster CDL
+              </Link>
             </div>
           </div>
 

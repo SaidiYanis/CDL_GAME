@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { CountryFlagLabel } from "@/src/features/common/components/country-flag-label";
 import type { Player, Team } from "@/src/types";
 
 interface DuelPlayerCardProps {
@@ -58,7 +59,7 @@ export function DuelPlayerCard({
           </h2>
           <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
             {formatMetaValue(team?.name ?? player.teamTag)} -{" "}
-            {formatMetaValue(player.country)}
+            <CountryFlagLabel country={player.country} />
           </p>
         </div>
       </div>

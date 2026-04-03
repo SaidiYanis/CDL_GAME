@@ -27,7 +27,7 @@ export type DuelAnswer = "left" | "right" | "same";
 export type DuelPrompt =
   | "Plus jeune"
   | "Plus vieux"
-  | "Plus de titres"
+  | "Qui a le plus de titres"
   | "Meilleure note BP";
 
 export interface DuelGameQuestion {

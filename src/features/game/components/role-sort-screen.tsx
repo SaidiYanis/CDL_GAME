@@ -6,6 +6,7 @@ import { GameDataFallback } from "@/src/features/game/components/game-data-fallb
 import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
+import { CountryFlagLabel } from "@/src/features/common/components/country-flag-label";
 import {
   createEmptyRoleAssignments,
   startRoleSortGame,
@@ -239,7 +240,8 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
                       {player.name}
                     </h2>
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                      {team?.tag ?? player.teamTag} / {player.country ?? "--"}
+                      {team?.tag ?? player.teamTag} /{" "}
+                      <CountryFlagLabel country={player.country} />
                     </p>
                   </div>
                 </div>

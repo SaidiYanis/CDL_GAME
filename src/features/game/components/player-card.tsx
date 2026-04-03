@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { CountryFlagLabel } from "@/src/features/common/components/country-flag-label";
 import type { Player, Team } from "@/src/types";
 
 interface PlayerCardProps {
@@ -75,7 +76,7 @@ export function PlayerCard({
           <PlayerStat label="Note BP" value={formatStatValue(player.rating)} />
           <PlayerStat
             label="Nationalite"
-            value={formatTextValue(player.country)}
+            value={<CountryFlagLabel country={player.country} />}
           />
           <PlayerStat
             label="Titres"
@@ -89,7 +90,13 @@ export function PlayerCard({
   );
 }
 
-function PlayerStat({ label, value }: { label: string; value: string }) {
+function PlayerStat({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
     <article className="rounded-3xl bg-white/5 px-4 py-3">
       <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-400">

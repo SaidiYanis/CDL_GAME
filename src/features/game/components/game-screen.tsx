@@ -10,6 +10,7 @@ import { PlayerCard } from "@/src/features/game/components/player-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import {
+  createInitialGameState,
   startSurvivalGame,
   submitSurvivalAnswer,
 } from "@/src/features/game/utils/survival-game";
@@ -34,7 +35,7 @@ export function GameScreen({ players, teams }: GameScreenProps) {
     "correct" | "incorrect" | null
   >(null);
   const [gameState, setGameState] = useState<GameState>(() =>
-    startSurvivalGame(players, 0),
+    createInitialGameState(0),
   );
   const playersById = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
@@ -129,12 +130,39 @@ export function GameScreen({ players, teams }: GameScreenProps) {
     ? teamsByTag.get(currentPlayer.teamTag) ?? null
     : null;
 
-  if (players.length === 0 || !gameState.currentQuestion || !currentPlayer) {
+  if (players.length === 0) {
     return (
       <GameDataFallback
         description="Verifie que le JSON local contient des joueurs valides avec un nom, une image et un tag d'equipe."
         title="Aucun joueur charge."
       />
+    );
+  }
+
+  if (
+    gameState.status === "idle" ||
+    !gameState.currentQuestion ||
+    !currentPlayer
+  ) {
+    return (
+      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+          <GameModeNavigation shouldConfirmNavigation={false} />
+          <ScoreDisplay bestScore={0} score={0} />
+
+          <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+              Devine le joueur
+            </p>
+            <h1 className="mt-5 text-4xl font-black tracking-[-0.04em] text-white">
+              Preparation de la run...
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-slate-300">
+              Chargement d&apos;une premiere question aleatoire.
+            </p>
+          </section>
+        </section>
+      </main>
     );
   }
 
