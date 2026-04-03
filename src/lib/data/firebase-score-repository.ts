@@ -12,25 +12,18 @@ import {
 } from "firebase/firestore";
 import type { FirebaseScoreRepository as FirebaseScoreRepositoryContract } from "@/src/features/scores/services/firebase-score-repository";
 import { firebaseDb } from "@/src/lib/firebase/client";
-import type {
-  AuthenticatedUserProfile,
-  GameModeId,
-  GameSessionDocument,
-  LeaderboardDocument,
-  LeaderboardEntry,
-  UserBestScoreDocument,
-  UserGameStatsDocument,
+import {
+  GAME_MODE_IDS,
+  type AuthenticatedUserProfile,
+  type GameModeId,
+  type GameSessionDocument,
+  type LeaderboardDocument,
+  type LeaderboardEntry,
+  type UserBestScoreDocument,
+  type UserGameStatsDocument,
 } from "@/src/types";
 
 const LEADERBOARD_LIMIT = 20;
-const GAME_MODE_IDS: GameModeId[] = [
-  "guess-player",
-  "age-duel",
-  "title-duel",
-  "rating-duel",
-  "role-sort",
-  "title-rank",
-];
 
 function createModeDocumentId(uid: string, modeId: GameModeId): string {
   return `${uid}_${modeId}`;

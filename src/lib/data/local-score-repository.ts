@@ -1,15 +1,10 @@
 import type { ScoreRepository } from "@/src/features/scores/services/score-repository";
-import type { GameModeId, ModeBestScores } from "@/src/types";
+import { GAME_MODE_IDS, type GameModeId, type ModeBestScores } from "@/src/types";
 
 const STORAGE_KEY = "cdl-survival-best-scores";
-const DEFAULT_BEST_SCORES: ModeBestScores = {
-  "age-duel": 0,
-  "guess-player": 0,
-  "rating-duel": 0,
-  "role-sort": 0,
-  "title-rank": 0,
-  "title-duel": 0,
-};
+const DEFAULT_BEST_SCORES = Object.fromEntries(
+  GAME_MODE_IDS.map((modeId) => [modeId, 0]),
+) as ModeBestScores;
 
 function getStoredScores(): ModeBestScores {
   if (typeof window === "undefined") {
@@ -25,14 +20,9 @@ function getStoredScores(): ModeBestScores {
   try {
     const parsedValue = JSON.parse(storedValue) as Partial<ModeBestScores>;
 
-    return {
-      "age-duel": Number(parsedValue["age-duel"]) || 0,
-      "guess-player": Number(parsedValue["guess-player"]) || 0,
-      "rating-duel": Number(parsedValue["rating-duel"]) || 0,
-      "role-sort": Number(parsedValue["role-sort"]) || 0,
-      "title-rank": Number(parsedValue["title-rank"]) || 0,
-      "title-duel": Number(parsedValue["title-duel"]) || 0,
-    };
+    return Object.fromEntries(
+      GAME_MODE_IDS.map((modeId) => [modeId, Number(parsedValue[modeId]) || 0]),
+    ) as ModeBestScores;
   } catch {
     return DEFAULT_BEST_SCORES;
   }

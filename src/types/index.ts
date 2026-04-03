@@ -14,6 +14,7 @@ export type {
   TitleRankGameState,
 } from "@/src/types/game";
 export type { Player, PlayerRole } from "@/src/types/player";
+export { GAME_MODE_IDS } from "@/src/types/score";
 export type { GameModeId, ModeBestScores } from "@/src/types/score";
 export type {
   GameSessionDocument,

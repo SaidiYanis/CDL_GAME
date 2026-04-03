@@ -1,10 +1,13 @@
-export type GameModeId =
-  | "guess-player"
-  | "age-duel"
-  | "title-duel"
-  | "rating-duel"
-  | "role-sort"
-  | "title-rank";
+export const GAME_MODE_IDS = [
+  "guess-player",
+  "age-duel",
+  "title-duel",
+  "rating-duel",
+  "role-sort",
+  "title-rank",
+] as const;
+
+export type GameModeId = (typeof GAME_MODE_IDS)[number];
 
 export type ModeBestScores = Record<GameModeId, number>;
 

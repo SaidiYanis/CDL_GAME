@@ -2,17 +2,9 @@ import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin
 import { getFirestore } from "firebase-admin/firestore";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { GAME_MODE_IDS } from "../src/types";
 import { slugify } from "../src/lib/utils/slugify";
-import type { GameModeId, Player, PlayerRole, Team } from "../src/types";
-
-const GAME_MODE_IDS: GameModeId[] = [
-  "guess-player",
-  "age-duel",
-  "title-duel",
-  "rating-duel",
-  "role-sort",
-  "title-rank",
-];
+import type { Player, PlayerRole, Team } from "../src/types";
 const DEFAULT_IMPORT_SOURCE_PATH = path.resolve(
   process.cwd(),
   "scripts/firestore-import-data.local.json",
