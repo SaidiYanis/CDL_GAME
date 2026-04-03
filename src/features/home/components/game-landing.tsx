@@ -7,7 +7,7 @@ const survivalRules = [
 ];
 
 const featureHighlights = [
-  "5 modes jouables pour tester ta lecture des joueurs CDL",
+  "6 modes jouables pour tester ta lecture des joueurs CDL",
   "Scores personnels et records synchronises",
   "Ranking global par mode",
   "Connexion Google",
@@ -34,7 +34,7 @@ export function GameLanding() {
                 Mode Survie
               </p>
               <h1 className="max-w-3xl text-4xl font-black tracking-[-0.04em] text-white sm:text-7xl">
-                Nomme le joueur. Survis le plus longtemps possible.
+                Teste tes reflexes CDL. Survis le plus longtemps possible.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-slate-300 sm:text-xl sm:leading-8">
                 Lance une run, bats ton record, compare ton niveau au ranking
