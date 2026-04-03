@@ -1,0 +1,154 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isGameMode(modeId) {
+      return modeId == "guess-player"
+        || modeId == "age-duel"
+        || modeId == "title-duel"
+        || modeId == "rating-duel"
+        || modeId == "role-sort";
+    }
+
+    function isNonNegativeNumber(value) {
+      return (value is int || value is float) && value >= 0;
+    }
+
+    function isOptionalPublicAvatar(photoUrl) {
+      return photoUrl == null || photoUrl is string;
+    }
+
+    function isValidUserProfile(userId) {
+      return request.resource.data.keys().hasOnly([
+        "createdAt",
+        "displayName",
+        "email",
+        "lastLoginAt",
+        "photoUrl",
+        "provider",
+        "uid"
+      ])
+        && request.resource.data.uid == userId
+        && request.resource.data.provider == "google"
+        && request.resource.data.createdAt is string
+        && request.resource.data.displayName is string
+        && request.resource.data.email is string
+        && request.resource.data.lastLoginAt is string
+        && isOptionalPublicAvatar(request.resource.data.photoUrl);
+    }
+
+    function isValidUserBestScore(bestScoreId) {
+      return request.resource.data.keys().hasOnly([
+        "bestScore",
+        "displayName",
+        "modeId",
+        "photoUrl",
+        "uid",
+        "updatedAt"
+      ])
+        && request.resource.data.uid == request.auth.uid
+        && bestScoreId == request.resource.data.uid + "_" + request.resource.data.modeId
+        && request.resource.data.bestScore is int
+        && request.resource.data.bestScore >= 0
+        && request.resource.data.displayName is string
+        && isGameMode(request.resource.data.modeId)
+        && isOptionalPublicAvatar(request.resource.data.photoUrl)
+        && request.resource.data.updatedAt is string;
+    }
+
+    function isValidUserGameStats(statsId) {
+      return request.resource.data.keys().hasOnly([
+        "averageScore",
+        "bestScore",
+        "gamesPlayed",
+        "lastPlayedAt",
+        "modeId",
+        "totalScore",
+        "uid"
+      ])
+        && request.resource.data.uid == request.auth.uid
+        && statsId == request.resource.data.uid + "_" + request.resource.data.modeId
+        && isNonNegativeNumber(request.resource.data.averageScore)
+        && request.resource.data.bestScore is int
+        && request.resource.data.bestScore >= 0
+        && request.resource.data.gamesPlayed is int
+        && request.resource.data.gamesPlayed >= 1
+        && request.resource.data.lastPlayedAt is string
+        && isGameMode(request.resource.data.modeId)
+        && request.resource.data.totalScore is int
+        && request.resource.data.totalScore >= 0;
+    }
+
+    function isValidGameSession() {
+      return request.resource.data.keys().hasOnly([
+        "durationMs",
+        "modeId",
+        "playedAt",
+        "score",
+        "status",
+        "uid"
+      ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.durationMs is int
+        && request.resource.data.durationMs >= 0
+        && isGameMode(request.resource.data.modeId)
+        && request.resource.data.playedAt is string
+        && request.resource.data.score is int
+        && request.resource.data.score >= 0
+        && request.resource.data.status in ["completed", "lost"];
+    }
+
+    match /teams/{teamId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /players/{playerId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create, update: if isOwner(userId) && isValidUserProfile(userId);
+      allow delete: if false;
+    }
+
+    match /userBestScores/{bestScoreId} {
+      allow read: if true;
+      allow create, update: if isSignedIn() && isValidUserBestScore(bestScoreId);
+      allow delete: if false;
+    }
+
+    match /userGameStats/{statsId} {
+      allow get: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow list: if false;
+      allow create, update: if isSignedIn() && isValidUserGameStats(statsId);
+      allow delete: if false;
+    }
+
+    match /gameSessions/{sessionId} {
+      allow get, list: if false;
+      allow create: if isSignedIn() && isValidGameSession();
+      allow update, delete: if false;
+    }
+
+    match /leaderboards/{modeId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

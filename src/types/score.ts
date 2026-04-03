@@ -9,7 +9,9 @@ export type ModeBestScores = Record<GameModeId, number>;
 
 export interface UserBestScoreDocument {
   bestScore: number;
+  displayName: string;
   modeId: GameModeId;
+  photoUrl: string | null;
   uid: string;
   updatedAt: string;
 }

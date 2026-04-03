@@ -70,23 +70,18 @@ export class FirestoreScoreRepository
         limit(LEADERBOARD_LIMIT),
       ),
     );
-    const entries: LeaderboardEntry[] = await Promise.all(
-      leaderboardSnapshot.docs
-        .map((scoreDocument) => scoreDocument.data() as UserBestScoreDocument)
-        .map(async (scoreDocument) => {
-          const userProfile =
-            await readDocument<AuthenticatedUserProfile>(
-              doc(db, "users", scoreDocument.uid),
-            );
+    const entries: LeaderboardEntry[] = leaderboardSnapshot.docs.map(
+      (scoreDocument) => {
+        const bestScoreDocument = scoreDocument.data() as UserBestScoreDocument;
 
-          return {
-            bestScore: scoreDocument.bestScore,
-            displayName: userProfile?.displayName ?? "Player",
-            photoUrl: userProfile?.photoUrl ?? null,
-            uid: scoreDocument.uid,
-            updatedAt: scoreDocument.updatedAt,
-          };
-        }),
+        return {
+          bestScore: bestScoreDocument.bestScore,
+          displayName: bestScoreDocument.displayName ?? "Player",
+          photoUrl: bestScoreDocument.photoUrl ?? null,
+          uid: bestScoreDocument.uid,
+          updatedAt: bestScoreDocument.updatedAt,
+        };
+      },
     );
 
     return {
@@ -122,7 +117,9 @@ export class FirestoreScoreRepository
     if (nextBestScore !== currentDocument?.bestScore) {
       await setDoc(documentRef, {
         bestScore: nextBestScore,
+        displayName: user.displayName,
         modeId,
+        photoUrl: user.photoUrl,
         uid: user.uid,
         updatedAt: new Date().toISOString(),
       } satisfies UserBestScoreDocument);

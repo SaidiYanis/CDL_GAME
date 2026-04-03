@@ -42,7 +42,9 @@
       "documentId": "`${uid}_${modeId}`",
       "shape": {
         "bestScore": 0,
+        "displayName": "Google Display Name",
         "modeId": "guess-player",
+        "photoUrl": "https://lh3.googleusercontent.com/...",
         "uid": "firebase-auth-uid",
         "updatedAt": "ISO_DATE_STRING"
       }
