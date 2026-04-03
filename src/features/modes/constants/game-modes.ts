@@ -1,7 +1,9 @@
+import type { GameModeId } from "@/src/types";
+
 export interface GameModeCard {
   description: string;
   href: string | null;
-  id: string;
+  id: GameModeId;
   isAvailable: boolean;
   label: string;
   title: string;
@@ -27,7 +29,7 @@ export const GAME_MODES: GameModeCard[] = [
     isAvailable: true,
   },
   {
-    id: "titles-duel",
+    id: "title-duel",
     title: "Plus de titres / same",
     label: "Jouable",
     description:

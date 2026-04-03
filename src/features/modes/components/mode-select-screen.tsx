@@ -21,12 +21,20 @@ export function ModeSelectScreen() {
               </p>
             </div>
 
-            <Link
-              href="/"
-              className="inline-flex w-fit items-center justify-center rounded-full border border-white/15 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-white/30 hover:bg-white/5"
-            >
-              Retour accueil
-            </Link>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/leaderboard"
+                className="inline-flex w-fit items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300"
+              >
+                Ranking global
+              </Link>
+              <Link
+                href="/"
+                className="inline-flex w-fit items-center justify-center rounded-full border border-white/15 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-white/30 hover:bg-white/5"
+              >
+                Retour accueil
+              </Link>
+            </div>
           </div>
 
           <GoogleAuthCard />
