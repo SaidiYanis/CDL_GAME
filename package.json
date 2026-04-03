@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "import:firestore": "tsx scripts/import-firestore.ts",
+    "test": "tsx --test src/features/game/utils/game-logic.test.ts",
     "start": "next start",
     "lint": "eslint"
   },
