@@ -102,6 +102,30 @@ export function useGameScoreSync({
     void syncLossSession(score, bestScore);
   }, [bestScore, score, status, syncLossSession]);
 
+  useEffect(() => {
+    if (status !== "playing") {
+      return;
+    }
+
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+      void syncLossSession(score, bestScore);
+    }
+
+    function handlePageHide() {
+      void syncLossSession(score, bestScore);
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [bestScore, score, status, syncLossSession]);
+
   return {
     syncCurrentRunLoss: () => syncLossSession(score, bestScore),
   };

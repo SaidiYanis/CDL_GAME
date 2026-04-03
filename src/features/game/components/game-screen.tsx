@@ -144,7 +144,10 @@ export function GameScreen({ players, teams }: GameScreenProps) {
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <GameModeNavigation onNavigateBack={syncCurrentRunLoss} />
+        <GameModeNavigation
+          onNavigateBack={syncCurrentRunLoss}
+          shouldConfirmNavigation={!isGameOver}
+        />
 
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <PlayerCard
