@@ -1,15 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { useGoogleAuthSession } from "@/src/features/auth/hooks/use-google-auth-session";
-import { firestoreScoreRepository } from "@/src/lib/data/firebase-score-repository";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
+import { finishGameSession } from "@/src/lib/game/game-session-client";
 import type { GameModeId, GameStatus } from "@/src/types";
 
 interface UseGameScoreSyncParams {
   bestScore: number;
   modeId: GameModeId;
   score: number;
+  sessionId: string | null;
   status: GameStatus;
 }
 
@@ -17,24 +17,22 @@ export function useGameScoreSync({
   bestScore,
   modeId,
   score,
+  sessionId,
   status,
 }: UseGameScoreSyncParams) {
-  const { authState } = useGoogleAuthSession();
   const hasSeenPlayingStateRef = useRef(status === "playing");
   const lastSyncedLossKeyRef = useRef<string | null>(null);
-  const sessionStartedAtRef = useRef<number | null>(null);
 
   const syncLossSession = useCallback(
     async (lostScore: number, lostBestScore: number) => {
       localScoreRepository.saveBestScore(modeId, lostBestScore);
 
-      if (!hasSeenPlayingStateRef.current || !authState.userProfile) {
+      if (!hasSeenPlayingStateRef.current || !sessionId) {
         hasSeenPlayingStateRef.current = false;
         return;
       }
 
-      const userProfile = authState.userProfile;
-      const syncKey = `${userProfile.uid}:${modeId}:${lostScore}:${lostBestScore}`;
+      const syncKey = `${sessionId}:${modeId}:${lostScore}:${lostBestScore}`;
 
       if (lastSyncedLossKeyRef.current === syncKey) {
         hasSeenPlayingStateRef.current = false;
@@ -44,36 +42,16 @@ export function useGameScoreSync({
       lastSyncedLossKeyRef.current = syncKey;
       hasSeenPlayingStateRef.current = false;
 
-      const sessionStartedAt = sessionStartedAtRef.current ?? Date.now();
-      const session = {
-        durationMs: Math.max(0, Date.now() - sessionStartedAt),
-        modeId,
-        playedAt: new Date().toISOString(),
-        score: lostScore,
-        status: "lost" as const,
-        uid: userProfile.uid,
-      };
-
       try {
-        const syncedBestScore = await firestoreScoreRepository.saveUserBestScore(
-          userProfile,
-          modeId,
-          lostBestScore,
-        );
-
-        await firestoreScoreRepository.saveGameSession(session);
-        await firestoreScoreRepository.upsertUserGameStats(
-          session,
-          syncedBestScore,
-        );
+        await finishGameSession(modeId, sessionId);
       } catch (error) {
         console.warn(
-          "[useGameScoreSync] Synchronisation Firestore impossible.",
+          "[useGameScoreSync] Synchronisation serveur impossible.",
           error,
         );
       }
     },
-    [authState.userProfile, modeId],
+    [modeId, sessionId],
   );
 
   useEffect(() => {
@@ -85,11 +63,6 @@ export function useGameScoreSync({
       if (!hasSeenPlayingStateRef.current) {
         hasSeenPlayingStateRef.current = true;
         lastSyncedLossKeyRef.current = null;
-        sessionStartedAtRef.current = Date.now();
-      }
-
-      if (sessionStartedAtRef.current === null) {
-        sessionStartedAtRef.current = Date.now();
       }
 
       return;
@@ -100,7 +73,12 @@ export function useGameScoreSync({
     }
 
     void syncLossSession(score, bestScore);
-  }, [bestScore, score, status, syncLossSession]);
+  }, [
+    bestScore,
+    score,
+    status,
+    syncLossSession,
+  ]);
 
   useEffect(() => {
     if (status !== "playing") {

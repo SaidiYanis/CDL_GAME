@@ -66,6 +66,9 @@ Les images et sons restent servis depuis `public/ressource/`.
 
 - **Aucune clé Firebase admin n'est nécessaire pour jouer**
 - la clé admin/service-account sert seulement aux scripts d'import privés
+- les API routes serveur `app/api/game-sessions/*` peuvent utiliser une clé
+  admin **côté serveur uniquement** pour finaliser les scores et réduire la
+  triche par écriture directe Firestore
 - les règles de sécurité Firestore doivent autoriser :
   - la lecture publique de `players`, `teams`, `userBestScores`
   - l'écriture par l'utilisateur connecté uniquement sur ses propres documents

@@ -9,13 +9,15 @@ import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import { CountryFlagLabel } from "@/src/features/common/components/country-flag-label";
 import {
   createEmptyRoleAssignments,
-  startRoleSortGame,
-  submitRoleSortRound,
   type RoleAssignments,
 } from "@/src/features/game/utils/role-sort-game";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
+import {
+  startGameSession,
+  submitGameSessionAnswer,
+} from "@/src/lib/game/game-session-client";
 import type { Player, PlayerRole, RoleSortGameState, Team } from "@/src/types";
 
 const ROLE_CHOICES: PlayerRole[] = ["AR", "SMG"];
@@ -46,17 +48,20 @@ function getCardBorderColor(
 
 export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
+  const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
+  const [isSubmittingRound, setIsSubmittingRound] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [{ assignments, gameState }, setSession] = useState<RoleSortSession>(
-    () => {
-      const initialGameState = startRoleSortGame(players, 0);
-
-      return {
-        assignments: createEmptyRoleAssignments(
-          initialGameState.currentQuestion,
-        ),
-        gameState: initialGameState,
-      };
-    },
+    () => ({
+      assignments: {},
+      gameState: {
+        bestScore: 0,
+        currentQuestion: null,
+        lastCorrectAnswer: null,
+        score: 0,
+        status: "idle",
+      },
+    }),
   );
   const playersById = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
@@ -82,6 +87,7 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
     bestScore: gameState.bestScore,
     modeId: "role-sort",
     score: gameState.score,
+    sessionId,
     status: gameState.status,
   });
 
@@ -92,28 +98,28 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
 
     hasLoadedLocalBestScoreRef.current = true;
     queueMicrotask(() => {
-      setSession((currentSession) => {
-        if (
-          currentSession.gameState.score !== 0 ||
-          currentSession.gameState.status !== "playing"
-        ) {
-          return currentSession;
-        }
-
-        const nextGameState = startRoleSortGame(
-          players,
-          localScoreRepository.getBestScore("role-sort"),
-        );
-
-        return {
-          assignments: createEmptyRoleAssignments(
-            nextGameState.currentQuestion,
-          ),
-          gameState: nextGameState,
-        };
-      });
+      void startGameSession(
+        "role-sort",
+        localScoreRepository.getBestScore("role-sort"),
+      )
+        .then((payload) => {
+          setSessionId(payload.sessionId);
+          setSession({
+            assignments: createEmptyRoleAssignments(
+              payload.gameState.currentQuestion,
+            ),
+            gameState: payload.gameState,
+          });
+        })
+        .catch((error) => {
+          setApiErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Session serveur impossible.",
+          );
+        });
     });
-  }, [players]);
+  }, []);
 
   const handleSelectRole = useCallback(
     (playerId: string, role: PlayerRole) => {
@@ -128,30 +134,97 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
     [],
   );
 
-  const handleSubmitRound = useCallback(() => {
-    const nextGameState = submitRoleSortRound(gameState, players, assignments);
+  const handleSubmitRound = useCallback(async () => {
+    if (!sessionId || isSubmittingRound) {
+      return;
+    }
 
-    playGameFeedbackSound(nextGameState.status === "lost" ? "lose" : "win");
+    setIsSubmittingRound(true);
 
-    setSession({
-      assignments: createEmptyRoleAssignments(nextGameState.currentQuestion),
-      gameState: nextGameState,
-    });
-  }, [assignments, gameState, players]);
-
-  const handleRestartGame = useCallback(() => {
-    setSession((currentSession) => {
-      const nextGameState = startRoleSortGame(
-        players,
-        currentSession.gameState.bestScore,
+    try {
+      const payload = await submitGameSessionAnswer(
+        "role-sort",
+        sessionId,
+        assignments,
       );
 
-      return {
-        assignments: createEmptyRoleAssignments(nextGameState.currentQuestion),
-        gameState: nextGameState,
-      };
-    });
-  }, [players]);
+      playGameFeedbackSound(payload.isCorrectAnswer ? "win" : "lose");
+      setSession({
+        assignments: createEmptyRoleAssignments(
+          payload.gameState.currentQuestion,
+        ),
+        gameState: payload.gameState,
+      });
+    } catch (error) {
+      setApiErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Validation serveur impossible.",
+      );
+    } finally {
+      setIsSubmittingRound(false);
+    }
+  }, [assignments, isSubmittingRound, sessionId]);
+
+  const handleRestartGame = useCallback(() => {
+    setSession((currentSession) => ({
+      assignments: {},
+      gameState: {
+        ...currentSession.gameState,
+        currentQuestion: null,
+        lastCorrectAnswer: null,
+        score: 0,
+        status: "idle",
+      },
+    }));
+    setSessionId(null);
+    void startGameSession("role-sort", gameState.bestScore)
+      .then((payload) => {
+        setSessionId(payload.sessionId);
+        setSession({
+          assignments: createEmptyRoleAssignments(
+            payload.gameState.currentQuestion,
+          ),
+          gameState: payload.gameState,
+        });
+      })
+      .catch((error) => {
+        setApiErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Session serveur impossible.",
+        );
+      });
+  }, [gameState.bestScore]);
+
+  if (apiErrorMessage) {
+    return (
+      <GameDataFallback
+        description={apiErrorMessage}
+        title="Session serveur indisponible."
+      />
+    );
+  }
+
+  if (gameState.status === "idle") {
+    return (
+      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+        <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+          <GameModeNavigation shouldConfirmNavigation={false} />
+          <ScoreDisplay bestScore={0} score={0} />
+
+          <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+              Tri AR / SMG
+            </p>
+            <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+              Preparation du round...
+            </h1>
+          </section>
+        </section>
+      </main>
+    );
+  }
 
   if (!gameState.currentQuestion || roundPlayers.length === 0) {
     return (
@@ -188,7 +261,7 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
 
           <button
             type="button"
-            disabled={!allPlayersSorted || isGameOver}
+            disabled={!allPlayersSorted || isGameOver || isSubmittingRound}
             onClick={handleSubmitRound}
             className="mt-8 inline-flex items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
           >

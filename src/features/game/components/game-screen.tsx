@@ -9,14 +9,12 @@ import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { PlayerCard } from "@/src/features/game/components/player-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
-import {
-  createInitialGameState,
-  startSurvivalGame,
-  submitSurvivalAnswer,
-} from "@/src/features/game/utils/survival-game";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
-import { isCloseAnswer } from "@/src/lib/utils/is-close-answer";
+import {
+  startGameSession,
+  submitGameSessionAnswer,
+} from "@/src/lib/game/game-session-client";
 import { SCORE_FOR_TEAM_HINT } from "@/src/features/game/constants/game-rules";
 import type { GameState, Player, Team } from "@/src/types";
 
@@ -30,13 +28,21 @@ interface GameScreenProps {
 export function GameScreen({ players, teams }: GameScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
+  const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
+  const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [feedbackStatus, setFeedbackStatus] = useState<
     "correct" | "incorrect" | null
   >(null);
-  const [gameState, setGameState] = useState<GameState>(() =>
-    createInitialGameState(0),
-  );
+  const [gameState, setGameState] = useState<GameState>({
+    bestScore: 0,
+    currentQuestion: null,
+    lastCorrectAnswer: null,
+    score: 0,
+    status: "idle",
+    usedPlayerIds: [],
+  });
   const playersById = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
     [players],
@@ -50,6 +56,7 @@ export function GameScreen({ players, teams }: GameScreenProps) {
     bestScore: gameState.bestScore,
     modeId: "guess-player",
     score: gameState.score,
+    sessionId,
     status: gameState.status,
   });
 
@@ -69,58 +76,97 @@ export function GameScreen({ players, teams }: GameScreenProps) {
 
     hasLoadedLocalBestScoreRef.current = true;
     queueMicrotask(() => {
-      setGameState((currentState) =>
-        currentState.score === 0 && currentState.status === "idle"
-          ? startSurvivalGame(
-              players,
-              localScoreRepository.getBestScore("guess-player"),
-            )
-          : currentState,
-      );
+      void startGameSession(
+        "guess-player",
+        localScoreRepository.getBestScore("guess-player"),
+      )
+        .then((payload) => {
+          setSessionId(payload.sessionId);
+          setGameState(payload.gameState);
+        })
+        .catch((error) => {
+          setApiErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Session serveur impossible.",
+          );
+        });
     });
-  }, [players]);
+  }, []);
 
   const handleSubmitAnswer = useCallback(
-    (answer: string) => {
-      if (!gameState.currentQuestion || feedbackStatus) {
+    async (answer: string) => {
+      if (!sessionId || !gameState.currentQuestion || isSubmittingAnswer) {
         return;
       }
 
-      const isCorrectAnswer =
-        gameState.currentQuestion.mode === "free-input"
-          ? isCloseAnswer(answer, gameState.currentQuestion.correctAnswer)
-          : answer === gameState.currentQuestion.correctAnswer;
+      setIsSubmittingAnswer(true);
 
-      playGameFeedbackSound(isCorrectAnswer ? "win" : "lose");
-
-      if (gameState.currentQuestion.mode === "free-input") {
-        setGameState((currentState) =>
-          submitSurvivalAnswer(currentState, players, answer),
-        );
-        return;
-      }
-
-      setSelectedAnswer(answer);
-      setFeedbackStatus(isCorrectAnswer ? "correct" : "incorrect");
-
-      feedbackTimeoutRef.current = window.setTimeout(() => {
-        setGameState((currentState) =>
-          submitSurvivalAnswer(currentState, players, answer),
+      try {
+        const submittedQuestionMode = gameState.currentQuestion.mode;
+        const payload = await submitGameSessionAnswer(
+          "guess-player",
+          sessionId,
+          answer,
         );
 
-        if (isCorrectAnswer) {
-          setSelectedAnswer(null);
-          setFeedbackStatus(null);
+        playGameFeedbackSound(payload.isCorrectAnswer ? "win" : "lose");
+
+        if (submittedQuestionMode === "free-input") {
+          setGameState(payload.gameState);
+          return;
         }
-      }, ANSWER_FEEDBACK_DELAY_MS);
+
+        setSelectedAnswer(answer);
+        setFeedbackStatus(
+          payload.isCorrectAnswer ? "correct" : "incorrect",
+        );
+
+        feedbackTimeoutRef.current = window.setTimeout(() => {
+          setGameState(payload.gameState);
+
+          if (payload.isCorrectAnswer) {
+            setSelectedAnswer(null);
+            setFeedbackStatus(null);
+          }
+        }, ANSWER_FEEDBACK_DELAY_MS);
+      } catch (error) {
+        setApiErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Validation serveur impossible.",
+        );
+      } finally {
+        setIsSubmittingAnswer(false);
+      }
     },
-    [feedbackStatus, gameState.currentQuestion, players],
+    [gameState.currentQuestion, isSubmittingAnswer, sessionId],
   );
 
   function handleRestartGame() {
     setSelectedAnswer(null);
     setFeedbackStatus(null);
-    setGameState(startSurvivalGame(players, gameState.bestScore));
+    setSessionId(null);
+    setGameState((currentState) => ({
+      ...currentState,
+      currentQuestion: null,
+      lastCorrectAnswer: null,
+      score: 0,
+      status: "idle",
+      usedPlayerIds: [],
+    }));
+    void startGameSession("guess-player", gameState.bestScore)
+      .then((payload) => {
+        setSessionId(payload.sessionId);
+        setGameState(payload.gameState);
+      })
+      .catch((error) => {
+        setApiErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Session serveur impossible.",
+        );
+      });
   }
 
   const currentPlayer = gameState.currentQuestion
@@ -129,6 +175,15 @@ export function GameScreen({ players, teams }: GameScreenProps) {
   const currentTeam = currentPlayer
     ? teamsByTag.get(currentPlayer.teamTag) ?? null
     : null;
+
+  if (apiErrorMessage) {
+    return (
+      <GameDataFallback
+        description={apiErrorMessage}
+        title="Session serveur indisponible."
+      />
+    );
+  }
 
   if (players.length === 0) {
     return (
@@ -202,13 +257,17 @@ export function GameScreen({ players, teams }: GameScreenProps) {
             <div className="mt-8">
               {currentQuestion.mode === "free-input" ? (
                 <AnswerInput
-                  disabled={isGameOver || feedbackStatus !== null}
+                  disabled={isGameOver || isSubmittingAnswer}
                   onSubmitAnswer={handleSubmitAnswer}
                   playerId={currentQuestion.playerId}
                 />
               ) : (
                 <AnswerOptions
-                  disabled={isGameOver || feedbackStatus !== null}
+                  disabled={
+                    isGameOver ||
+                    isSubmittingAnswer ||
+                    feedbackStatus !== null
+                  }
                   feedbackStatus={feedbackStatus}
                   onSelectAnswer={handleSubmitAnswer}
                   options={currentQuestion.options}

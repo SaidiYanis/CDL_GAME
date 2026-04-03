@@ -10,13 +10,15 @@ import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import {
   createEmptyTitleRankAssignments,
   getTitleRankRoundLabel,
-  startTitleRankGame,
-  submitTitleRankRound,
   type TitleRankAssignments,
 } from "@/src/features/game/utils/title-rank-game";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
+import {
+  startGameSession,
+  submitGameSessionAnswer,
+} from "@/src/lib/game/game-session-client";
 import type {
   Player,
   Team,
@@ -56,6 +58,9 @@ function getPlayerCardBorderColor(
 
 export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
+  const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
+  const [isSubmittingRound, setIsSubmittingRound] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [{ assignments, gameState }, setSession] = useState<TitleRankSession>(
     () => ({
       assignments: {},
@@ -92,6 +97,7 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
     bestScore: gameState.bestScore,
     modeId: "title-rank",
     score: gameState.score,
+    sessionId,
     status: gameState.status,
   });
 
@@ -102,28 +108,28 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
 
     hasLoadedLocalBestScoreRef.current = true;
     queueMicrotask(() => {
-      setSession((currentSession) => {
-        if (
-          currentSession.gameState.score !== 0 ||
-          currentSession.gameState.status !== "idle"
-        ) {
-          return currentSession;
-        }
-
-        const nextGameState = startTitleRankGame(
-          players,
-          localScoreRepository.getBestScore("title-rank"),
-        );
-
-        return {
-          assignments: createEmptyTitleRankAssignments(
-            nextGameState.currentQuestion,
-          ),
-          gameState: nextGameState,
-        };
-      });
+      void startGameSession(
+        "title-rank",
+        localScoreRepository.getBestScore("title-rank"),
+      )
+        .then((payload) => {
+          setSessionId(payload.sessionId);
+          setSession({
+            assignments: createEmptyTitleRankAssignments(
+              payload.gameState.currentQuestion,
+            ),
+            gameState: payload.gameState,
+          });
+        })
+        .catch((error) => {
+          setApiErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Session serveur impossible.",
+          );
+        });
     });
-  }, [players]);
+  }, []);
 
   const handleSelectAnswer = useCallback(
     (playerId: string, answer: TitleRankAnswer) => {
@@ -138,34 +144,77 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
     [],
   );
 
-  const handleSubmitRound = useCallback(() => {
-    const nextGameState = submitTitleRankRound(gameState, players, assignments);
+  const handleSubmitRound = useCallback(async () => {
+    if (!sessionId || isSubmittingRound) {
+      return;
+    }
 
-    playGameFeedbackSound(nextGameState.status === "lost" ? "lose" : "win");
+    setIsSubmittingRound(true);
 
-    setSession({
-      assignments: createEmptyTitleRankAssignments(
-        nextGameState.currentQuestion,
-      ),
-      gameState: nextGameState,
-    });
-  }, [assignments, gameState, players]);
-
-  const handleRestartGame = useCallback(() => {
-    setSession((currentSession) => {
-      const nextGameState = startTitleRankGame(
-        players,
-        currentSession.gameState.bestScore,
+    try {
+      const payload = await submitGameSessionAnswer(
+        "title-rank",
+        sessionId,
+        assignments,
       );
 
-      return {
+      playGameFeedbackSound(payload.isCorrectAnswer ? "win" : "lose");
+      setSession({
         assignments: createEmptyTitleRankAssignments(
-          nextGameState.currentQuestion,
+          payload.gameState.currentQuestion,
         ),
-        gameState: nextGameState,
-      };
-    });
-  }, [players]);
+        gameState: payload.gameState,
+      });
+    } catch (error) {
+      setApiErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Validation serveur impossible.",
+      );
+    } finally {
+      setIsSubmittingRound(false);
+    }
+  }, [assignments, isSubmittingRound, sessionId]);
+
+  const handleRestartGame = useCallback(() => {
+    setSession((currentSession) => ({
+      assignments: {},
+      gameState: {
+        ...currentSession.gameState,
+        currentQuestion: null,
+        lastCorrectAnswer: null,
+        score: 0,
+        status: "idle",
+      },
+    }));
+    setSessionId(null);
+    void startGameSession("title-rank", gameState.bestScore)
+      .then((payload) => {
+        setSessionId(payload.sessionId);
+        setSession({
+          assignments: createEmptyTitleRankAssignments(
+            payload.gameState.currentQuestion,
+          ),
+          gameState: payload.gameState,
+        });
+      })
+      .catch((error) => {
+        setApiErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Session serveur impossible.",
+        );
+      });
+  }, [gameState.bestScore]);
+
+  if (apiErrorMessage) {
+    return (
+      <GameDataFallback
+        description={apiErrorMessage}
+        title="Session serveur indisponible."
+      />
+    );
+  }
 
   if (players.length < 5) {
     return (
@@ -239,7 +288,7 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
 
           <button
             type="button"
-            disabled={!allPlayersAnswered || isGameOver}
+            disabled={!allPlayersAnswered || isGameOver || isSubmittingRound}
             onClick={handleSubmitRound}
             className="mt-8 inline-flex items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
           >

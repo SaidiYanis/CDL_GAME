@@ -6,13 +6,13 @@ import { GameDataFallback } from "@/src/features/game/components/game-data-fallb
 import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
-import {
-  startRatingDuelGame,
-  submitRatingDuelAnswer,
-} from "@/src/features/game/utils/rating-duel-game";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
+import {
+  startGameSession,
+  submitGameSessionAnswer,
+} from "@/src/lib/game/game-session-client";
 import type { DuelAnswer, DuelGameState, Player, Team } from "@/src/types";
 
 const DUEL_FEEDBACK_DELAY_MS = 280;
@@ -25,13 +25,21 @@ interface RatingDuelScreenProps {
 export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
+  const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
+  const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<DuelAnswer | null>(null);
   const [feedbackStatus, setFeedbackStatus] = useState<
     "correct" | "incorrect" | null
   >(null);
-  const [gameState, setGameState] = useState<DuelGameState>(() =>
-    startRatingDuelGame(players, 0),
-  );
+  const [gameState, setGameState] = useState<DuelGameState>({
+    bestScore: 0,
+    currentQuestion: null,
+    lastCorrectAnswer: null,
+    score: 0,
+    status: "idle",
+    usedPairKeys: [],
+  });
   const playersById = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
     [players],
@@ -59,6 +67,7 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
     bestScore: gameState.bestScore,
     modeId: "rating-duel",
     score: gameState.score,
+    sessionId,
     status: gameState.status,
   });
 
@@ -78,49 +87,120 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
 
     hasLoadedLocalBestScoreRef.current = true;
     queueMicrotask(() => {
-      setGameState((currentState) =>
-        currentState.score === 0 && currentState.status === "playing"
-          ? startRatingDuelGame(
-              players,
-              localScoreRepository.getBestScore("rating-duel"),
-            )
-          : currentState,
-      );
+      void startGameSession(
+        "rating-duel",
+        localScoreRepository.getBestScore("rating-duel"),
+      )
+        .then((payload) => {
+          setSessionId(payload.sessionId);
+          setGameState(payload.gameState);
+        })
+        .catch((error) => {
+          setApiErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Session serveur impossible.",
+          );
+        });
     });
-  }, [players]);
+  }, []);
 
   const handleSubmitAnswer = useCallback(
-    (answer: DuelAnswer) => {
-      if (!gameState.currentQuestion || feedbackStatus) {
+    async (answer: DuelAnswer) => {
+      if (!sessionId || !gameState.currentQuestion || isSubmittingAnswer) {
         return;
       }
 
-      const isCorrectAnswer =
-        answer === gameState.currentQuestion.correctAnswer;
+      setIsSubmittingAnswer(true);
 
-      setSelectedAnswer(answer);
-      setFeedbackStatus(isCorrectAnswer ? "correct" : "incorrect");
-      playGameFeedbackSound(isCorrectAnswer ? "win" : "lose");
-
-      feedbackTimeoutRef.current = window.setTimeout(() => {
-        setGameState((currentState) =>
-          submitRatingDuelAnswer(currentState, players, answer),
+      try {
+        const payload = await submitGameSessionAnswer(
+          "rating-duel",
+          sessionId,
+          answer,
         );
 
-        if (isCorrectAnswer) {
-          setSelectedAnswer(null);
-          setFeedbackStatus(null);
-        }
-      }, DUEL_FEEDBACK_DELAY_MS);
+        setSelectedAnswer(answer);
+        setFeedbackStatus(
+          payload.isCorrectAnswer ? "correct" : "incorrect",
+        );
+        playGameFeedbackSound(payload.isCorrectAnswer ? "win" : "lose");
+
+        feedbackTimeoutRef.current = window.setTimeout(() => {
+          setGameState(payload.gameState);
+
+          if (payload.isCorrectAnswer) {
+            setSelectedAnswer(null);
+            setFeedbackStatus(null);
+          }
+        }, DUEL_FEEDBACK_DELAY_MS);
+      } catch (error) {
+        setApiErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Validation serveur impossible.",
+        );
+      } finally {
+        setIsSubmittingAnswer(false);
+      }
     },
-    [feedbackStatus, gameState.currentQuestion, players],
+    [gameState.currentQuestion, isSubmittingAnswer, sessionId],
   );
 
   const handleRestartGame = useCallback(() => {
     setSelectedAnswer(null);
     setFeedbackStatus(null);
-    setGameState(startRatingDuelGame(players, gameState.bestScore));
-  }, [gameState.bestScore, players]);
+    setSessionId(null);
+    setGameState((currentState) => ({
+      ...currentState,
+      currentQuestion: null,
+      lastCorrectAnswer: null,
+      score: 0,
+      status: "idle",
+      usedPairKeys: [],
+    }));
+    void startGameSession("rating-duel", gameState.bestScore)
+      .then((payload) => {
+        setSessionId(payload.sessionId);
+        setGameState(payload.gameState);
+      })
+      .catch((error) => {
+        setApiErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Session serveur impossible.",
+        );
+      });
+  }, [gameState.bestScore]);
+
+  if (apiErrorMessage) {
+    return (
+      <GameDataFallback
+        description={apiErrorMessage}
+        title="Session serveur indisponible."
+      />
+    );
+  }
+
+  if (gameState.status === "idle") {
+    return (
+      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+          <GameModeNavigation shouldConfirmNavigation={false} />
+          <ScoreDisplay bestScore={0} score={0} />
+
+          <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+              Duel note BP
+            </p>
+            <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+              Preparation du round...
+            </h1>
+          </section>
+        </section>
+      </main>
+    );
+  }
 
   if (!gameState.currentQuestion || !leftPlayer || !rightPlayer) {
     return (
@@ -153,7 +233,9 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
             <button
               type="button"
-              disabled={isGameOver || feedbackStatus !== null}
+              disabled={
+                isGameOver || isSubmittingAnswer || feedbackStatus !== null
+              }
               onClick={() => handleSubmitAnswer("left")}
               className={`rounded-full px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
                 selectedAnswer === "left" && feedbackStatus === "correct"
@@ -168,7 +250,9 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
             </button>
             <button
               type="button"
-              disabled={isGameOver || feedbackStatus !== null}
+              disabled={
+                isGameOver || isSubmittingAnswer || feedbackStatus !== null
+              }
               onClick={() => handleSubmitAnswer("same")}
               className={`rounded-full border px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
                 selectedAnswer === "same" && feedbackStatus === "correct"
@@ -183,7 +267,9 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
             </button>
             <button
               type="button"
-              disabled={isGameOver || feedbackStatus !== null}
+              disabled={
+                isGameOver || isSubmittingAnswer || feedbackStatus !== null
+              }
               onClick={() => handleSubmitAnswer("right")}
               className={`rounded-full px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
                 selectedAnswer === "right" && feedbackStatus === "correct"
