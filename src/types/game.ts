@@ -21,3 +21,23 @@ export interface GameState {
   usedPlayerIds: string[];
   lastCorrectAnswer: string | null;
 }
+
+export type DuelAnswer = "left" | "right" | "same";
+
+export type DuelPrompt = "Plus jeune" | "Plus vieux";
+
+export interface DuelGameQuestion {
+  correctAnswer: DuelAnswer;
+  leftPlayerId: string;
+  prompt: DuelPrompt;
+  rightPlayerId: string;
+}
+
+export interface DuelGameState {
+  bestScore: number;
+  currentQuestion: DuelGameQuestion | null;
+  lastCorrectAnswer: string | null;
+  score: number;
+  status: GameStatus;
+  usedPairKeys: string[];
+}

@@ -1,4 +1,8 @@
 export type {
+  DuelAnswer,
+  DuelGameQuestion,
+  DuelGameState,
+  DuelPrompt,
   GameQuestion,
   GameQuestionMode,
   GameState,

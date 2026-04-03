@@ -20,11 +20,11 @@ export const GAME_MODES: GameModeCard[] = [
   {
     id: "age-duel",
     title: "Plus jeune / plus vieux",
-    label: "Bientot",
+    label: "Jouable",
     description:
       "Compare deux joueurs et choisis qui est le plus jeune ou le plus age pour faire monter le score.",
-    href: null,
-    isAvailable: false,
+    href: "/game/age-duel",
+    isAvailable: true,
   },
   {
     id: "titles-duel",
