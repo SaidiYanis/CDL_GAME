@@ -23,6 +23,7 @@ export function PlayerCard({
   team,
 }: PlayerCardProps) {
   const displayedTeamName = revealTeam ? (team?.name ?? player.teamTag) : "???";
+  const displayedTeamTag = revealTeam ? player.teamTag : "???";
   const displayedTeamLogo = revealTeam ? team?.logoUrl : null;
 
   return (
@@ -55,7 +56,7 @@ export function PlayerCard({
             </div>
           ) : (
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-              {player.teamTag}
+              {displayedTeamTag}
             </div>
           )}
 
@@ -71,8 +72,11 @@ export function PlayerCard({
 
         <div className="mt-6 grid grid-cols-2 gap-3">
           <PlayerStat label="Role" value={formatTextValue(player.role)} />
-          <PlayerStat label="Pays" value={formatTextValue(player.country)} />
           <PlayerStat label="Note BP" value={formatStatValue(player.rating)} />
+          <PlayerStat
+            label="Nationalite"
+            value={formatTextValue(player.country)}
+          />
           <PlayerStat
             label="Titres"
             value={`${formatStatValue(
