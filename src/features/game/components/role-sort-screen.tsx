@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
 import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
@@ -44,12 +44,10 @@ function getCardBorderColor(
 }
 
 export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
+  const hasLoadedLocalBestScoreRef = useRef(false);
   const [{ assignments, gameState }, setSession] = useState<RoleSortSession>(
     () => {
-      const initialGameState = startRoleSortGame(
-        players,
-        localScoreRepository.getBestScore("role-sort"),
-      );
+      const initialGameState = startRoleSortGame(players, 0);
 
       return {
         assignments: createEmptyRoleAssignments(
@@ -85,6 +83,36 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
     score: gameState.score,
     status: gameState.status,
   });
+
+  useEffect(() => {
+    if (hasLoadedLocalBestScoreRef.current) {
+      return;
+    }
+
+    hasLoadedLocalBestScoreRef.current = true;
+    queueMicrotask(() => {
+      setSession((currentSession) => {
+        if (
+          currentSession.gameState.score !== 0 ||
+          currentSession.gameState.status !== "playing"
+        ) {
+          return currentSession;
+        }
+
+        const nextGameState = startRoleSortGame(
+          players,
+          localScoreRepository.getBestScore("role-sort"),
+        );
+
+        return {
+          assignments: createEmptyRoleAssignments(
+            nextGameState.currentQuestion,
+          ),
+          gameState: nextGameState,
+        };
+      });
+    });
+  }, [players]);
 
   const handleSelectRole = useCallback(
     (playerId: string, role: PlayerRole) => {

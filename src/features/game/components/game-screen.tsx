@@ -26,16 +26,14 @@ interface GameScreenProps {
 }
 
 export function GameScreen({ players, teams }: GameScreenProps) {
+  const hasLoadedLocalBestScoreRef = useRef(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [feedbackStatus, setFeedbackStatus] = useState<
     "correct" | "incorrect" | null
   >(null);
   const [gameState, setGameState] = useState<GameState>(() =>
-    startSurvivalGame(
-      players,
-      localScoreRepository.getBestScore("guess-player"),
-    ),
+    startSurvivalGame(players, 0),
   );
   const playersById = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
@@ -61,6 +59,24 @@ export function GameScreen({ players, teams }: GameScreenProps) {
     },
     [],
   );
+
+  useEffect(() => {
+    if (hasLoadedLocalBestScoreRef.current) {
+      return;
+    }
+
+    hasLoadedLocalBestScoreRef.current = true;
+    queueMicrotask(() => {
+      setGameState((currentState) =>
+        currentState.score === 0 && currentState.status === "playing"
+          ? startSurvivalGame(
+              players,
+              localScoreRepository.getBestScore("guess-player"),
+            )
+          : currentState,
+      );
+    });
+  }, [players]);
 
   const handleSubmitAnswer = useCallback(
     (answer: string) => {

@@ -23,16 +23,14 @@ interface RatingDuelScreenProps {
 }
 
 export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
+  const hasLoadedLocalBestScoreRef = useRef(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<DuelAnswer | null>(null);
   const [feedbackStatus, setFeedbackStatus] = useState<
     "correct" | "incorrect" | null
   >(null);
   const [gameState, setGameState] = useState<DuelGameState>(() =>
-    startRatingDuelGame(
-      players,
-      localScoreRepository.getBestScore("rating-duel"),
-    ),
+    startRatingDuelGame(players, 0),
   );
   const playersById = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
@@ -72,6 +70,24 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
     },
     [],
   );
+
+  useEffect(() => {
+    if (hasLoadedLocalBestScoreRef.current) {
+      return;
+    }
+
+    hasLoadedLocalBestScoreRef.current = true;
+    queueMicrotask(() => {
+      setGameState((currentState) =>
+        currentState.score === 0 && currentState.status === "playing"
+          ? startRatingDuelGame(
+              players,
+              localScoreRepository.getBestScore("rating-duel"),
+            )
+          : currentState,
+      );
+    });
+  }, [players]);
 
   const handleSubmitAnswer = useCallback(
     (answer: DuelAnswer) => {
