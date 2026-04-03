@@ -15,7 +15,8 @@ import {
 } from "@/src/features/game/utils/survival-game";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
-import { normalizeAnswer } from "@/src/lib/utils/normalize-answer";
+import { isCloseAnswer } from "@/src/lib/utils/is-close-answer";
+import { SCORE_FOR_TEAM_HINT } from "@/src/features/game/constants/game-rules";
 import type { GameState, Player, Team } from "@/src/types";
 
 const ANSWER_FEEDBACK_DELAY_MS = 280;
@@ -44,7 +45,7 @@ export function GameScreen({ players, teams }: GameScreenProps) {
     [teams],
   );
 
-  useGameScoreSync({
+  const { syncCurrentRunLoss } = useGameScoreSync({
     bestScore: gameState.bestScore,
     modeId: "guess-player",
     score: gameState.score,
@@ -85,8 +86,9 @@ export function GameScreen({ players, teams }: GameScreenProps) {
       }
 
       const isCorrectAnswer =
-        normalizeAnswer(answer) ===
-        normalizeAnswer(gameState.currentQuestion.correctAnswer);
+        gameState.currentQuestion.mode === "free-input"
+          ? isCloseAnswer(answer, gameState.currentQuestion.correctAnswer)
+          : answer === gameState.currentQuestion.correctAnswer;
 
       playGameFeedbackSound(isCorrectAnswer ? "win" : "lose");
 
@@ -142,11 +144,12 @@ export function GameScreen({ players, teams }: GameScreenProps) {
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <GameModeNavigation />
+        <GameModeNavigation onNavigateBack={syncCurrentRunLoss} />
 
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <PlayerCard
             player={currentPlayer}
+            revealTeam={gameState.score >= SCORE_FOR_TEAM_HINT}
             score={gameState.score}
             team={currentTeam}
           />

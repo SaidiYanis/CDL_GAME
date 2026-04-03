@@ -7,7 +7,7 @@ const survivalRules = [
 ];
 
 const featureHighlights = [
-  "5 modes jouables",
+  "5 modes jouables pour tester ta lecture des joueurs CDL",
   "Scores personnels et records synchronises",
   "Ranking global par mode",
   "Connexion Google",
@@ -49,12 +49,6 @@ export function GameLanding() {
               >
                 Choisir un mode
               </Link>
-              <a
-                href="#features"
-                className="inline-flex items-center justify-center rounded-full border border-white/15 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-white/30 hover:bg-white/5"
-              >
-                Voir les features
-              </a>
             </div>
           </div>
 

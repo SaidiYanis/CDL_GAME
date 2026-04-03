@@ -2,6 +2,7 @@ import {
   getOptionCountByMode,
   getQuestionMode,
 } from "@/src/features/game/constants/game-rules";
+import { isCloseAnswer } from "@/src/lib/utils/is-close-answer";
 import { normalizeAnswer } from "@/src/lib/utils/normalize-answer";
 import { pickRandomItem, pickUniqueRandomItems } from "@/src/lib/utils/random";
 import type { GameQuestion, GameState, Player } from "@/src/types";
@@ -39,8 +40,10 @@ export function submitSurvivalAnswer(
   }
 
   const isCorrectAnswer =
-    normalizeAnswer(submittedAnswer) ===
-    normalizeAnswer(state.currentQuestion.correctAnswer);
+    state.currentQuestion.mode === "free-input"
+      ? isCloseAnswer(submittedAnswer, state.currentQuestion.correctAnswer)
+      : normalizeAnswer(submittedAnswer) ===
+        normalizeAnswer(state.currentQuestion.correctAnswer);
 
   if (!isCorrectAnswer) {
     return {

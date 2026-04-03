@@ -3,6 +3,7 @@ import type { Player, Team } from "@/src/types";
 
 interface PlayerCardProps {
   player: Player;
+  revealTeam?: boolean;
   score: number;
   team: Team | null;
 }
@@ -15,7 +16,15 @@ function formatTextValue(value: string | null): string {
   return value ?? "--";
 }
 
-export function PlayerCard({ player, score, team }: PlayerCardProps) {
+export function PlayerCard({
+  player,
+  revealTeam = true,
+  score,
+  team,
+}: PlayerCardProps) {
+  const displayedTeamName = revealTeam ? (team?.name ?? player.teamTag) : "???";
+  const displayedTeamLogo = revealTeam ? team?.logoUrl : null;
+
   return (
     <section className="rounded-[2rem] border border-white/10 bg-white/5 p-5 sm:p-6">
       <div className="relative aspect-square w-full overflow-hidden rounded-[1.5rem] bg-slate-900">
@@ -33,11 +42,11 @@ export function PlayerCard({ player, score, team }: PlayerCardProps) {
 
       <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-slate-900/40 p-5">
         <div className="flex items-center gap-4">
-          {team?.logoUrl ? (
+          {displayedTeamLogo ? (
             <div className="relative h-14 w-14 overflow-hidden rounded-2xl bg-white/5">
               <Image
-                src={team.logoUrl}
-                alt={`Logo ${team.name}`}
+                src={displayedTeamLogo}
+                alt={`Logo ${team?.name ?? player.teamTag}`}
                 fill
                 sizes="56px"
                 className="object-contain p-2"
@@ -55,7 +64,7 @@ export function PlayerCard({ player, score, team }: PlayerCardProps) {
               Indices joueur
             </p>
             <p className="mt-2 text-xl font-black tracking-[-0.04em] text-white">
-              {team?.name ?? player.teamTag}
+              {displayedTeamName}
             </p>
           </div>
         </div>
@@ -66,9 +75,9 @@ export function PlayerCard({ player, score, team }: PlayerCardProps) {
           <PlayerStat label="Note BP" value={formatStatValue(player.rating)} />
           <PlayerStat
             label="Titres"
-            value={`${formatStatValue(player.worldTitleCount)}W / ${formatStatValue(
-              player.majorTitleCount,
-            )}M`}
+            value={`${formatStatValue(
+              player.worldTitleCount,
+            )} World / ${formatStatValue(player.majorTitleCount)} Major`}
           />
         </div>
       </div>

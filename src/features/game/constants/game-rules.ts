@@ -1,15 +1,11 @@
 import type { GameQuestionMode } from "@/src/types";
 
-export const SCORE_FOR_THREE_CHOICES = 5;
-export const SCORE_FOR_FREE_INPUT = 11;
+export const SCORE_FOR_FREE_INPUT = 9;
+export const SCORE_FOR_TEAM_HINT = 9;
 
 export function getQuestionMode(score: number): GameQuestionMode {
   if (score >= SCORE_FOR_FREE_INPUT) {
     return "free-input";
-  }
-
-  if (score >= SCORE_FOR_THREE_CHOICES) {
-    return "multiple-choice-3";
   }
 
   return "multiple-choice-4";
