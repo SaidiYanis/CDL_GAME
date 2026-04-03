@@ -257,7 +257,7 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
   if (!gameState.currentQuestion || roundPlayers.length === 0) {
     return (
       <GameDataFallback
-        description="Ce mode requiert au moins 10 joueurs dont le role est AR ou SMG."
+        description="Ce mode requiert au moins 5 joueurs dont le role est AR ou SMG."
         title="Pas assez de joueurs avec un role AR/SMG renseigne."
       />
     );
@@ -281,7 +281,7 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
             Tri AR / SMG
           </p>
           <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-5xl">
-            Classe les 10 joueurs par role.
+            Classe les 5 joueurs par role.
           </h1>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:mt-4 sm:text-base sm:leading-8">
             Assigne chaque joueur en AR ou SMG, puis valide le round. Une seule

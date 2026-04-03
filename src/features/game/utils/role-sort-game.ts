@@ -6,7 +6,7 @@ import type {
   RoleSortGameState,
 } from "@/src/types";
 
-const ROLE_SORT_ROUND_SIZE = 10;
+const ROLE_SORT_ROUND_SIZE = 5;
 
 export type RoleAssignments = Record<string, PlayerRole | null>;
 
