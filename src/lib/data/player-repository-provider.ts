@@ -26,24 +26,45 @@ class RepositoryProvider implements PlayerRepository {
     }
   }
 
-  async getPlayers() {
+  private async executeWithFallback<T>(
+    repositoryAction: (repository: PlayerRepository) => Promise<T>,
+  ): Promise<T> {
     const repository = await this.getActiveRepository();
-    return repository.getPlayers();
+
+    try {
+      return await repositoryAction(repository);
+    } catch (error) {
+      if (repository === this.localRepository) {
+        throw error;
+      }
+
+      console.warn(
+        "[RepositoryProvider] Lecture Firebase impossible, fallback local.",
+        error,
+      );
+
+      return repositoryAction(this.localRepository);
+    }
+  }
+
+  async getPlayers() {
+    return this.executeWithFallback((repository) => repository.getPlayers());
   }
 
   async getTeams() {
-    const repository = await this.getActiveRepository();
-    return repository.getTeams();
+    return this.executeWithFallback((repository) => repository.getTeams());
   }
 
   async getPlayerById(playerId: string) {
-    const repository = await this.getActiveRepository();
-    return repository.getPlayerById(playerId);
+    return this.executeWithFallback((repository) =>
+      repository.getPlayerById(playerId),
+    );
   }
 
   async getTeamByTag(teamTag: string) {
-    const repository = await this.getActiveRepository();
-    return repository.getTeamByTag(teamTag);
+    return this.executeWithFallback((repository) =>
+      repository.getTeamByTag(teamTag),
+    );
   }
 }
 

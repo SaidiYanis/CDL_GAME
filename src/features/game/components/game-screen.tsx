@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AnswerInput } from "@/src/features/game/components/answer-input";
 import { AnswerOptions } from "@/src/features/game/components/answer-options";
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { PlayerCard } from "@/src/features/game/components/player-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
+import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import {
   startSurvivalGame,
   submitSurvivalAnswer,
@@ -35,9 +36,12 @@ export function GameScreen({ players, teams }: GameScreenProps) {
     [teams],
   );
 
-  useEffect(() => {
-    localScoreRepository.saveBestScore("guess-player", gameState.bestScore);
-  }, [gameState.bestScore]);
+  useGameScoreSync({
+    bestScore: gameState.bestScore,
+    modeId: "guess-player",
+    score: gameState.score,
+    status: gameState.status,
+  });
 
   function handleSubmitAnswer(answer: string) {
     setGameState((currentState) =>

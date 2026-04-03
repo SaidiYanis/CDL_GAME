@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
@@ -11,6 +11,7 @@ import {
   submitRoleSortRound,
   type RoleAssignments,
 } from "@/src/features/game/utils/role-sort-game";
+import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import type { Player, PlayerRole, RoleSortGameState, Team } from "@/src/types";
 
@@ -76,9 +77,12 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
   );
   const isGameOver = gameState.status === "lost";
 
-  useEffect(() => {
-    localScoreRepository.saveBestScore("role-sort", gameState.bestScore);
-  }, [gameState.bestScore]);
+  useGameScoreSync({
+    bestScore: gameState.bestScore,
+    modeId: "role-sort",
+    score: gameState.score,
+    status: gameState.status,
+  });
 
   const handleSelectRole = useCallback(
     (playerId: string, role: PlayerRole) => {

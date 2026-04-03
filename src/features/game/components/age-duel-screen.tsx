@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { DuelPlayerCard } from "@/src/features/game/components/duel-player-card";
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
@@ -9,6 +9,7 @@ import {
   startAgeDuelGame,
   submitAgeDuelAnswer,
 } from "@/src/features/game/utils/age-duel-game";
+import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import type { DuelAnswer, DuelGameState, Player, Team } from "@/src/types";
 
@@ -44,9 +45,12 @@ export function AgeDuelScreen({ players, teams }: AgeDuelScreenProps) {
     : null;
   const isGameOver = gameState.status === "lost";
 
-  useEffect(() => {
-    localScoreRepository.saveBestScore("age-duel", gameState.bestScore);
-  }, [gameState.bestScore]);
+  useGameScoreSync({
+    bestScore: gameState.bestScore,
+    modeId: "age-duel",
+    score: gameState.score,
+    status: gameState.status,
+  });
 
   const handleSubmitAnswer = useCallback(
     (answer: DuelAnswer) => {

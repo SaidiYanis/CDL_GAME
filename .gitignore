@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# firebase admin credentials
+*-firebase-adminsdk-*.json
+
 # local workflow docs
 /frontend-dev-guidelines/
 
