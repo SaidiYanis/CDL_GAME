@@ -1,0 +1,556 @@
+{
+  "teams": [
+    {
+      "name": "Boston Breach",
+      "tag": "BOS",
+      "players": [
+        {
+          "name": "Nastie",
+          "role": "AR",
+          "birthDate": "1999-07-03",
+          "country": "Angleterre",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "BOS",
+          "img": "/ressource/BREACH/nastie.png"
+        },
+        {
+          "name": "Purj",
+          "role": "SMG",
+          "birthDate": "2003-03-03",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "BOS",
+          "img": "/ressource/BREACH/purj.png"
+        },
+        {
+          "name": "Snoopy",
+          "role": "SMG",
+          "birthDate": "2004-09-25",
+          "country": "Mexique",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "BOS",
+          "img": "/ressource/BREACH/snoopy.png"
+        },
+        {
+          "name": "Spart",
+          "role": "AR",
+          "birthDate": "2001-05-24",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 1,
+          "team": "BOS",
+          "img": "/ressource/BREACH/spart.png"
+        }
+      ]
+    },
+    {
+      "name": "Carolina Royal Ravens",
+      "tag": "CAR",
+      "players": [
+        {
+          "name": "Craze",
+          "role": "SMG",
+          "birthDate": "2004-03-16",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "CAR",
+          "img": "/ressource/RAVENS/craze.png"
+        },
+        {
+          "name": "Exceed",
+          "role": "AR",
+          "birthDate": "2001-06-11",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "CAR",
+          "img": "/ressource/RAVENS/exceed.png"
+        },
+        {
+          "name": "Lurqxx",
+          "role": "SMG",
+          "birthDate": "2006-02-06",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "CAR",
+          "img": "/ressource/RAVENS/lurqxx.png"
+        },
+        {
+          "name": "Nero",
+          "role": "AR",
+          "birthDate": "2002-05-30",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "CAR",
+          "img": "/ressource/RAVENS/nero.png"
+        }
+      ]
+    },
+    {
+      "name": "Cloud9 New York",
+      "tag": "C9",
+      "players": [
+        {
+          "name": "Encourage",
+          "role": "AR",
+          "birthDate": "2006-06-20",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "C9",
+          "img": "/ressource/CLOUD9/encourage.png"
+        },
+        {
+          "name": "Hide",
+          "role": "SMG",
+          "birthDate": "2007-06-05",
+          "country": "Mexique",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "C9",
+          "img": "/ressource/CLOUD9/hide.png"
+        },
+        {
+          "name": "Nejra",
+          "role": "SMG",
+          "birthDate": "2003-08-05",
+          "country": "Porto Rico",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "C9",
+          "img": "/ressource/CLOUD9/nejra.png"
+        },
+        {
+          "name": "Okis",
+          "role": "AR",
+          "birthDate": "2003-08-04",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "C9",
+          "img": "/ressource/CLOUD9/okis.png"
+        }
+      ]
+    },
+    {
+      "name": "FaZe Vegas",
+      "tag": "FAZE",
+      "players": [
+        {
+          "name": "04",
+          "role": "SMG",
+          "birthDate": "2004-08-02",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 1,
+          "team": "FAZE",
+          "img": "/ressource/FAZE/04.png"
+        },
+        {
+          "name": "Abuzah",
+          "role": "AR",
+          "birthDate": "2000-07-13",
+          "country": "Belgique",
+          "world_title": 0,
+          "major_title": 1,
+          "team": "FAZE",
+          "img": "/ressource/FAZE/abuzah.png"
+        },
+        {
+          "name": "Drazah",
+          "role": "AR",
+          "birthDate": "2001-05-09",
+          "country": "US",
+          "world_title": 1,
+          "major_title": 6,
+          "team": "FAZE",
+          "img": "/ressource/FAZE/drazah.png"
+        },
+        {
+          "name": "Simp",
+          "role": "SMG",
+          "birthDate": "2001-02-06",
+          "country": "US",
+          "world_title": 2,
+          "major_title": 8,
+          "team": "FAZE",
+          "img": "/ressource/FAZE/simp.png"
+        }
+      ]
+    },
+    {
+      "name": "G2 Minnesota",
+      "tag": "G2",
+      "players": [
+        {
+          "name": "Estreal",
+          "role": "SMG",
+          "birthDate": "2002-12-17",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "G2",
+          "img": "/ressource/G2/estreal.png"
+        },
+        {
+          "name": "Kremp",
+          "role": "SMG",
+          "birthDate": "2002-11-19",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "G2",
+          "img": "/ressource/G2/kremp.png"
+        },
+        {
+          "name": "Mamba",
+          "role": "AR",
+          "birthDate": "2002-03-13",
+          "country": "Mexique",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "G2",
+          "img": "/ressource/G2/mamba.png"
+        },
+        {
+          "name": "Skyz",
+          "role": "AR",
+          "birthDate": "1999-07-08",
+          "country": "US",
+          "world_title": 1,
+          "major_title": 3,
+          "team": "G2",
+          "img": "/ressource/G2/skyz.png"
+        }
+      ]
+    },
+    {
+      "name": "Los Angeles Thieves",
+      "tag": "LAT",
+      "players": [
+        {
+          "name": "HyDra",
+          "role": "SMG",
+          "birthDate": "2002-02-11",
+          "country": "France",
+          "world_title": 1,
+          "major_title": 5,
+          "team": "LAT",
+          "img": "/ressource/THIEVES/hydra.png"
+        },
+        {
+          "name": "Nium",
+          "role": "AR",
+          "birthDate": "2002-07-23",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 0,
+          "team": "LAT",
+          "img": "/ressource/THIEVES/nium.png"
+        },
+        {
+          "name": "Scrap",
+          "role": "AR",
+          "birthDate": "2002-07-01",
+          "country": "US",
+          "world_title": 0,
+          "major_title": 4,
+          "team": "LAT",
+          "img": "/ressource/THIEVES/scrap.png"
+        },
+        {
+          "name": "aBeZy",
+          "role": "SMG",
+          "birthDate": "1999-11-03",
+          "country": "US",
+          "world_title": 2,
+          "major_title": 7,
+          "team": "LAT",
+          "img": "/ressource/THIEVES/abezy.png"
+        }
+      ]
+    },
+    {
+      "name": "Miami Heretics",
+      "tag": "MIA",
+      "players": [
+        {
+          "name": "MettalZ",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "MIA",
+          "img": "/ressource/HERETICS/mettalz.png"
+        },
+        {
+          "name": "RenKoR",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "MIA",
+          "img": "/ressource/HERETICS/renkor.png"
+        },
+        {
+          "name": "SupeR",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "MIA",
+          "img": "/ressource/HERETICS/super.png"
+        },
+        {
+          "name": "Traixx",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "MIA",
+          "img": "/ressource/HERETICS/traixx.png"
+        }
+      ]
+    },
+    {
+      "name": "OpTic Texas",
+      "tag": "OPTIC",
+      "players": [
+        {
+          "name": "Dashy",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "OPTIC",
+          "img": "/ressource/OPTIC/dashy.png"
+        },
+        {
+          "name": "Huke",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "OPTIC",
+          "img": "/ressource/OPTIC/huke.png"
+        },
+        {
+          "name": "Mercules",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "OPTIC",
+          "img": "/ressource/OPTIC/mercules.png"
+        },
+        {
+          "name": "Shotzzy",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "OPTIC",
+          "img": "/ressource/OPTIC/shotzzy.png"
+        }
+      ]
+    },
+    {
+      "name": "Paris Gentle Mates",
+      "tag": "M8",
+      "players": [
+        {
+          "name": "Envoy",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "M8",
+          "img": "/ressource/GENTLEMATES/envoy.png"
+        },
+        {
+          "name": "Ghosty",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "M8",
+          "img": "/ressource/GENTLEMATES/ghosty.png"
+        },
+        {
+          "name": "Neptune",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "M8",
+          "img": "/ressource/GENTLEMATES/neptune.png"
+        },
+        {
+          "name": "Sib",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "M8",
+          "img": "/ressource/GENTLEMATES/sib.png"
+        }
+      ]
+    },
+    {
+      "name": "Riyadh Falcons",
+      "tag": "FAL",
+      "players": [
+        {
+          "name": "Cellium",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "FAL",
+          "img": "/ressource/FALCONS/cellium.png"
+        },
+        {
+          "name": "Exnid",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "FAL",
+          "img": "/ressource/FALCONS/exnid.png"
+        },
+        {
+          "name": "KiSMET",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "FAL",
+          "img": "/ressource/FALCONS/kismet.png"
+        },
+        {
+          "name": "Pred",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "FAL",
+          "img": "/ressource/FALCONS/pred.png"
+        }
+      ]
+    },
+    {
+      "name": "Toronto KOI",
+      "tag": "TKOI",
+      "players": [
+        {
+          "name": "CleanX",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "TKOI",
+          "img": "/ressource/KOI/cleanx.png"
+        },
+        {
+          "name": "Insight",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "TKOI",
+          "img": "/ressource/KOI/insight.png"
+        },
+        {
+          "name": "JoeDeceives",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "TKOI",
+          "img": "/ressource/KOI/joedeceives.png"
+        },
+        {
+          "name": "Kips",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "TKOI",
+          "img": "/ressource/KOI/kips.png"
+        }
+      ]
+    },
+    {
+      "name": "Vancouver Surge",
+      "tag": "VAN",
+      "players": [
+        {
+          "name": "Capsidal",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "VAN",
+          "img": "/ressource/SURGE/capsidal.png"
+        },
+        {
+          "name": "Gwinn",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "VAN",
+          "img": "/ressource/SURGE/gwinn.png"
+        },
+        {
+          "name": "Lunarz",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "VAN",
+          "img": "/ressource/SURGE/lunarz.png"
+        },
+        {
+          "name": "TJHaLy",
+          "role": null,
+          "birthDate": "YYYY-MM-DD",
+          "country": null,
+          "world_title": null,
+          "major_title": null,
+          "team": "VAN",
+          "img": "/ressource/SURGE/tjhaly.png"
+        }
+      ]
+    }
+  ]
+}
