@@ -92,18 +92,18 @@ export function ProfileScreen() {
   }, [authState.userProfile]);
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <header className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+    <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-5 sm:gap-8">
+        <header className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">
                 Profil joueur
               </p>
-              <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white sm:text-7xl">
+              <h1 className="mt-4 text-4xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-7xl">
                 Tes stats CDL.
               </h1>
-              <p className="mt-5 text-lg leading-8 text-slate-300">
+              <p className="mt-4 text-base leading-7 text-slate-300 sm:mt-5 sm:text-lg sm:leading-8">
                 Suis tes records, ton volume de jeu et tes performances par mode.
               </p>
             </div>
@@ -111,13 +111,13 @@ export function ProfileScreen() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/leaderboard"
-                className="inline-flex w-fit items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300"
+                className="inline-flex w-fit items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 sm:px-8 sm:py-4 sm:text-sm"
               >
                 Ranking global
               </Link>
               <Link
                 href="/modes"
-                className="inline-flex w-fit items-center justify-center rounded-full border border-white/15 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-white/30 hover:bg-white/5"
+                className="inline-flex w-fit items-center justify-center rounded-full border border-white/15 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-white/30 hover:bg-white/5 sm:px-8 sm:py-4 sm:text-sm"
               >
                 Retour modes
               </Link>
@@ -128,20 +128,20 @@ export function ProfileScreen() {
         <GoogleAuthCard />
 
         <section className="grid gap-4 lg:grid-cols-2">
-          <article className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <article className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
               Parties jouees
             </p>
-            <p className="mt-4 text-6xl font-black tracking-[-0.06em] text-white">
+            <p className="mt-3 text-5xl font-black tracking-[-0.06em] text-white sm:mt-4 sm:text-6xl">
               {totalGamesPlayed}
             </p>
           </article>
 
-          <article className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <article className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
               Records cumules
             </p>
-            <p className="mt-4 text-6xl font-black tracking-[-0.06em] text-emerald-300">
+            <p className="mt-3 text-5xl font-black tracking-[-0.06em] text-emerald-300 sm:mt-4 sm:text-6xl">
               {totalBestScore}
             </p>
           </article>
@@ -154,8 +154,8 @@ export function ProfileScreen() {
         ) : null}
 
         {!authState.userProfile && authState.isAuthReady ? (
-          <section className="rounded-[2rem] border border-amber-300/15 bg-amber-300/5 p-8">
-            <h2 className="text-3xl font-black tracking-[-0.04em] text-white">
+          <section className="rounded-[1.5rem] border border-amber-300/15 bg-amber-300/5 p-5 sm:rounded-[2rem] sm:p-8">
+            <h2 className="text-2xl font-black tracking-[-0.04em] text-white sm:text-3xl">
               Connecte-toi pour voir tes stats sauvegardees.
             </h2>
             <p className="mt-4 text-sm leading-7 text-amber-100">
@@ -172,14 +172,14 @@ export function ProfileScreen() {
             return (
               <article
                 key={mode.id}
-                className="rounded-[2rem] border border-white/10 bg-slate-950/30 p-8"
+                className="rounded-[1.5rem] border border-white/10 bg-slate-950/30 p-5 sm:rounded-[2rem] sm:p-8"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
                       {mode.id}
                     </p>
-                    <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] text-white">
+                    <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-white sm:mt-3 sm:text-3xl">
                       {mode.title}
                     </h2>
                   </div>
@@ -192,34 +192,34 @@ export function ProfileScreen() {
                   </Link>
                 </div>
 
-                <div className="mt-8 grid grid-cols-3 gap-3">
-                  <div className="rounded-3xl bg-white/5 p-4">
+                <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-8 sm:gap-3">
+                  <div className="rounded-3xl bg-white/5 p-3 sm:p-4">
                     <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">
                       Record
                     </p>
-                    <p className="mt-3 text-4xl font-black tracking-[-0.05em] text-emerald-300">
+                    <p className="mt-2 text-3xl font-black tracking-[-0.05em] text-emerald-300 sm:mt-3 sm:text-4xl">
                       {stats?.bestScore ?? 0}
                     </p>
                   </div>
-                  <div className="rounded-3xl bg-white/5 p-4">
+                  <div className="rounded-3xl bg-white/5 p-3 sm:p-4">
                     <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">
                       Moyenne
                     </p>
-                    <p className="mt-3 text-4xl font-black tracking-[-0.05em] text-white">
+                    <p className="mt-2 text-3xl font-black tracking-[-0.05em] text-white sm:mt-3 sm:text-4xl">
                       {stats ? stats.averageScore.toFixed(1) : "0.0"}
                     </p>
                   </div>
-                  <div className="rounded-3xl bg-white/5 p-4">
+                  <div className="rounded-3xl bg-white/5 p-3 sm:p-4">
                     <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">
                       Runs
                     </p>
-                    <p className="mt-3 text-4xl font-black tracking-[-0.05em] text-white">
+                    <p className="mt-2 text-3xl font-black tracking-[-0.05em] text-white sm:mt-3 sm:text-4xl">
                       {stats?.gamesPlayed ?? 0}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <div className="mt-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:mt-6 sm:text-xs">
                   {authState.userProfile?.photoUrl ? (
                     <Image
                       src={authState.userProfile.photoUrl}

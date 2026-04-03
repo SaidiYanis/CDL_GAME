@@ -150,9 +150,10 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
 
       playGameFeedbackSound(payload.isCorrectAnswer ? "win" : "lose");
       setSession({
-        assignments: createEmptyRoleAssignments(
-          payload.gameState.currentQuestion,
-        ),
+        assignments:
+          payload.gameState.status === "lost"
+            ? assignments
+            : createEmptyRoleAssignments(payload.gameState.currentQuestion),
         gameState: payload.gameState,
       });
     } catch (error) {
@@ -208,16 +209,16 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
 
   if (gameState.status === "idle") {
     return (
-      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-        <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+      <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+        <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 sm:gap-8">
           <GameModeNavigation shouldConfirmNavigation={false} />
           <ScoreDisplay bestScore={0} score={0} />
 
-          <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
               Tri AR / SMG
             </p>
-            <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+            <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-5xl">
               Preparation du round...
             </h1>
           </section>
@@ -236,8 +237,8 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+    <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 sm:gap-8">
         <GameModeNavigation
           onNavigateBack={syncCurrentRunLoss}
           shouldConfirmNavigation={!isGameOver}
@@ -247,14 +248,14 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
           score={gameState.score}
         />
 
-        <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+        <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
             Tri AR / SMG
           </p>
-          <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+          <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-5xl">
             Classe les 10 joueurs par role.
           </h1>
-          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:mt-4 sm:text-base sm:leading-8">
             Assigne chaque joueur en AR ou SMG, puis valide le round. Une seule
             erreur termine la run.
           </p>
@@ -263,10 +264,21 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
             type="button"
             disabled={!allPlayersSorted || isGameOver || isSubmittingRound}
             onClick={handleSubmitRound}
-            className="mt-8 inline-flex items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-8 sm:px-8 sm:py-4 sm:text-sm"
           >
             Valider le tri
           </button>
+
+          {isGameOver ? (
+            <div className="mt-8">
+              <GameOverCard
+                bestScore={gameState.bestScore}
+                correctAnswer={gameState.lastCorrectAnswer}
+                onRestartGame={handleRestartGame}
+                score={gameState.score}
+              />
+            </div>
+          ) : null}
         </section>
 
         <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
@@ -347,14 +359,6 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
           })}
         </section>
 
-        {isGameOver ? (
-          <GameOverCard
-            bestScore={gameState.bestScore}
-            correctAnswer={gameState.lastCorrectAnswer}
-            onRestartGame={handleRestartGame}
-            score={gameState.score}
-          />
-        ) : null}
       </section>
     </main>
   );

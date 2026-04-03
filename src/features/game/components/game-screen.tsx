@@ -200,19 +200,19 @@ export function GameScreen({ players, teams }: GameScreenProps) {
     !currentPlayer
   ) {
     return (
-      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+      <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-5 sm:gap-6">
           <GameModeNavigation shouldConfirmNavigation={false} />
           <ScoreDisplay bestScore={0} score={0} />
 
-          <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
               Devine le joueur
             </p>
-            <h1 className="mt-5 text-4xl font-black tracking-[-0.04em] text-white">
+            <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-4xl">
               Preparation de la run...
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-8 text-slate-300">
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300 sm:mt-4 sm:text-base sm:leading-8">
               Chargement d&apos;une premiere question aleatoire.
             </p>
           </section>
@@ -225,14 +225,14 @@ export function GameScreen({ players, teams }: GameScreenProps) {
   const isGameOver = status === "lost";
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+    <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-5 sm:gap-6">
         <GameModeNavigation
           onNavigateBack={syncCurrentRunLoss}
           shouldConfirmNavigation={!isGameOver}
         />
 
-        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid gap-5 sm:gap-8 lg:grid-cols-[0.9fr_1.1fr]">
           <PlayerCard
             player={currentPlayer}
             revealTeam={gameState.score >= SCORE_FOR_TEAM_HINT}
@@ -246,11 +246,11 @@ export function GameScreen({ players, teams }: GameScreenProps) {
             score={gameState.score}
           />
 
-          <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
               Devine le joueur
             </p>
-            <h1 className="mt-5 text-4xl font-black tracking-[-0.04em] text-white">
+            <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-4xl">
               Qui est sur la photo ?
             </h1>
 
@@ -275,16 +275,18 @@ export function GameScreen({ players, teams }: GameScreenProps) {
                 />
               )}
             </div>
-          </section>
 
-          {isGameOver ? (
-            <GameOverCard
-              bestScore={gameState.bestScore}
-              correctAnswer={gameState.lastCorrectAnswer}
-              onRestartGame={handleRestartGame}
-              score={gameState.score}
-            />
-          ) : null}
+            {isGameOver ? (
+              <div className="mt-8">
+                <GameOverCard
+                  bestScore={gameState.bestScore}
+                  correctAnswer={gameState.lastCorrectAnswer}
+                  onRestartGame={handleRestartGame}
+                  score={gameState.score}
+                />
+              </div>
+            ) : null}
+          </section>
           </div>
         </div>
       </section>

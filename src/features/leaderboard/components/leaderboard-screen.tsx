@@ -120,18 +120,18 @@ export function LeaderboardScreen() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <header className="flex flex-col gap-6 rounded-[2rem] border border-white/10 bg-white/5 p-8">
+    <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-5 sm:gap-8">
+        <header className="flex flex-col gap-5 rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:gap-6 sm:rounded-[2rem] sm:p-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">
                 Ranking global
               </p>
-              <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white sm:text-7xl">
+              <h1 className="mt-4 text-4xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-7xl">
                 Leaderboards par mode.
               </h1>
-              <p className="mt-5 text-lg leading-8 text-slate-300">
+              <p className="mt-4 text-base leading-7 text-slate-300 sm:mt-5 sm:text-lg sm:leading-8">
                 Choisis un mode, regarde le podium, ta position et le top 20
                 synchronise Firestore.
               </p>
@@ -140,13 +140,13 @@ export function LeaderboardScreen() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/profile"
-                className="inline-flex w-fit items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300"
+                className="inline-flex w-fit items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 sm:px-8 sm:py-4 sm:text-sm"
               >
                 Mon profil
               </Link>
               <Link
                 href="/modes"
-                className="inline-flex w-fit items-center justify-center rounded-full border border-white/15 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-white/30 hover:bg-white/5"
+                className="inline-flex w-fit items-center justify-center rounded-full border border-white/15 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-white/30 hover:bg-white/5 sm:px-8 sm:py-4 sm:text-sm"
               >
                 Retour modes
               </Link>
@@ -157,7 +157,7 @@ export function LeaderboardScreen() {
         </header>
 
         {errorMessage ? (
-          <section className="rounded-[2rem] border border-amber-300/15 bg-amber-300/5 p-8">
+          <section className="rounded-[1.5rem] border border-amber-300/15 bg-amber-300/5 p-5 sm:rounded-[2rem] sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-amber-200">
               Firestore
             </p>
@@ -170,7 +170,7 @@ export function LeaderboardScreen() {
           </section>
         ) : null}
 
-        <section className="rounded-[2rem] border border-white/10 bg-white/5 p-6">
+        <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4 sm:rounded-[2rem] sm:p-6">
           <div className="flex flex-wrap gap-3">
             {GAME_MODES.map((mode) => (
               <button
@@ -190,11 +190,11 @@ export function LeaderboardScreen() {
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-          <article className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <article className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
               {selectedMode?.id}
             </p>
-            <h2 className="mt-3 text-4xl font-black tracking-[-0.04em] text-white">
+            <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white sm:mt-3 sm:text-4xl">
               {selectedMode?.title}
             </h2>
 
@@ -203,7 +203,7 @@ export function LeaderboardScreen() {
                 <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-500">
                   Joueurs classes
                 </p>
-                <p className="mt-4 text-5xl font-black tracking-[-0.05em] text-white">
+                <p className="mt-3 text-4xl font-black tracking-[-0.05em] text-white sm:mt-4 sm:text-5xl">
                   {selectedLeaderboard?.entries.length ?? 0}
                 </p>
               </div>
@@ -211,7 +211,7 @@ export function LeaderboardScreen() {
                 <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-500">
                   Ta position
                 </p>
-                <p className="mt-4 text-5xl font-black tracking-[-0.05em] text-emerald-300">
+                <p className="mt-3 text-4xl font-black tracking-[-0.05em] text-emerald-300 sm:mt-4 sm:text-5xl">
                   {currentUserRank ? `#${currentUserRank}` : "--"}
                 </p>
               </div>
@@ -261,7 +261,7 @@ export function LeaderboardScreen() {
             </div>
           </article>
 
-          <article className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <article className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-3xl font-black tracking-[-0.04em] text-white">
                 Top 20

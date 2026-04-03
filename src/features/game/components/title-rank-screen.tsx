@@ -9,6 +9,7 @@ import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import {
   createEmptyTitleRankAssignments,
+  getExpectedTitleRankAnswer,
   getTitleRankRoundLabel,
   type TitleRankAssignments,
 } from "@/src/features/game/utils/title-rank-game";
@@ -47,13 +48,16 @@ interface TitleRankSession {
 
 function getPlayerCardBorderColor(
   selectedAnswer: TitleRankAnswer | null,
+  expectedAnswer: TitleRankAnswer,
   isGameOver: boolean,
 ): string {
   if (!isGameOver) {
     return selectedAnswer ? "border-emerald-300/40" : "border-white/10";
   }
 
-  return selectedAnswer ? "border-white/10" : "border-rose-300/50";
+  return selectedAnswer === expectedAnswer
+    ? "border-emerald-300/50"
+    : "border-rose-300/50";
 }
 
 export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
@@ -160,9 +164,12 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
 
       playGameFeedbackSound(payload.isCorrectAnswer ? "win" : "lose");
       setSession({
-        assignments: createEmptyTitleRankAssignments(
-          payload.gameState.currentQuestion,
-        ),
+        assignments:
+          payload.gameState.status === "lost"
+            ? assignments
+            : createEmptyTitleRankAssignments(
+                payload.gameState.currentQuestion,
+              ),
         gameState: payload.gameState,
       });
     } catch (error) {
@@ -231,15 +238,15 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
     roundPlayers.length === 0
   ) {
     return (
-      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-        <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+      <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+        <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 sm:gap-8">
           <GameModeNavigation shouldConfirmNavigation={false} />
           <ScoreDisplay bestScore={0} score={0} />
-          <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
               Rank titres
             </p>
-            <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+            <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-5xl">
               Preparation du round...
             </h1>
           </section>
@@ -248,39 +255,41 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
     );
   }
 
+  const currentQuestion = gameState.currentQuestion;
+
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+    <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 sm:gap-8">
         <GameModeNavigation
           onNavigateBack={syncCurrentRunLoss}
           shouldConfirmNavigation={!isGameOver}
         />
         <ScoreDisplay bestScore={gameState.bestScore} score={gameState.score} />
 
-        <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+        <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="max-w-3xl">
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
                 Title Radar
               </p>
-              <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+              <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-5xl">
                 Place les 5 joueurs face a la cible.
               </h1>
             </div>
 
-            <div className="rounded-[2rem] border border-emerald-300/20 bg-emerald-400/10 px-8 py-6 text-center">
+            <div className="rounded-[1.5rem] border border-emerald-300/20 bg-emerald-400/10 px-6 py-4 text-center sm:rounded-[2rem] sm:px-8 sm:py-6">
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-emerald-300">
                 Cible titres
               </p>
-              <p className="mt-3 text-7xl font-black tracking-[-0.08em] text-white">
-                {gameState.currentQuestion.targetTitleCount}
+              <p className="mt-2 text-5xl font-black tracking-[-0.08em] text-white sm:mt-3 sm:text-7xl">
+                {currentQuestion.targetTitleCount}
               </p>
             </div>
           </div>
           <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">
-            {getTitleRankRoundLabel(gameState.currentQuestion)}
+            {getTitleRankRoundLabel(currentQuestion)}
           </p>
-          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:mt-4 sm:text-base sm:leading-8">
             Pour chaque joueur, choisis + s&apos;il a plus de titres que la
             cible, = s&apos;il est exactement au meme total, ou - s&apos;il en a
             moins. Une seule erreur termine la run.
@@ -290,22 +299,38 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
             type="button"
             disabled={!allPlayersAnswered || isGameOver || isSubmittingRound}
             onClick={handleSubmitRound}
-            className="mt-8 inline-flex items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-8 sm:px-8 sm:py-4 sm:text-sm"
           >
             Valider les 5 choix
           </button>
+
+          {isGameOver ? (
+            <div className="mt-8">
+              <GameOverCard
+                bestScore={gameState.bestScore}
+                correctAnswer={gameState.lastCorrectAnswer}
+                onRestartGame={handleRestartGame}
+                score={gameState.score}
+              />
+            </div>
+          ) : null}
         </section>
 
         <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
           {roundPlayers.map((player) => {
             const team = teamsByTag.get(player.teamTag) ?? null;
             const selectedAnswer = assignments[player.id] ?? null;
+            const expectedAnswer = getExpectedTitleRankAnswer(
+              player,
+              currentQuestion,
+            );
 
             return (
               <article
                 key={player.id}
                 className={`rounded-[2rem] border bg-white/5 p-4 ${getPlayerCardBorderColor(
                   selectedAnswer,
+                  expectedAnswer,
                   isGameOver,
                 )}`}
               >
@@ -354,7 +379,9 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
                       onClick={() => handleSelectAnswer(player.id, choice.value)}
                       className={`rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-[0.2em] transition-colors disabled:cursor-not-allowed ${
                         selectedAnswer === choice.value
-                          ? "bg-emerald-400 text-slate-950"
+                          ? isGameOver && selectedAnswer !== expectedAnswer
+                            ? "bg-rose-500 text-white"
+                            : "bg-emerald-400 text-slate-950"
                           : "bg-slate-900/70 text-white hover:bg-white/10"
                       }`}
                     >
@@ -367,14 +394,6 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
           })}
         </section>
 
-        {isGameOver ? (
-          <GameOverCard
-            bestScore={gameState.bestScore}
-            correctAnswer={gameState.lastCorrectAnswer}
-            onRestartGame={handleRestartGame}
-            score={gameState.score}
-          />
-        ) : null}
       </section>
     </main>
   );

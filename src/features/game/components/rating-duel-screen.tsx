@@ -184,16 +184,16 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
 
   if (gameState.status === "idle") {
     return (
-      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-        <section className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+      <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+        <section className="mx-auto flex w-full max-w-6xl flex-col gap-5 sm:gap-8">
           <GameModeNavigation shouldConfirmNavigation={false} />
           <ScoreDisplay bestScore={0} score={0} />
 
-          <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
               Duel note BP
             </p>
-            <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+            <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-5xl">
               Preparation du round...
             </h1>
           </section>
@@ -212,8 +212,8 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+    <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-5 sm:gap-8">
         <GameModeNavigation
           onNavigateBack={syncCurrentRunLoss}
           shouldConfirmNavigation={!isGameOver}
@@ -223,21 +223,21 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
           score={gameState.score}
         />
 
-        <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8 text-center">
+        <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 text-center sm:rounded-[2rem] sm:p-8">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
             Duel note BP
           </p>
-          <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+          <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-5xl">
             Qui a la meilleure note ?
           </h1>
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
+          <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:justify-center sm:gap-4">
             <button
               type="button"
               disabled={
                 isGameOver || isSubmittingAnswer || feedbackStatus !== null
               }
               onClick={() => handleSubmitAnswer("left")}
-              className={`rounded-full px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+              className={`rounded-full px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 sm:px-8 sm:py-4 sm:text-sm ${
                 selectedAnswer === "left" && feedbackStatus === "correct"
                   ? "bg-emerald-400 text-slate-950"
                   : selectedAnswer === "left" &&
@@ -254,7 +254,7 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
                 isGameOver || isSubmittingAnswer || feedbackStatus !== null
               }
               onClick={() => handleSubmitAnswer("same")}
-              className={`rounded-full border px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+              className={`rounded-full border px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 sm:px-8 sm:py-4 sm:text-sm ${
                 selectedAnswer === "same" && feedbackStatus === "correct"
                   ? "border-emerald-300/70 bg-emerald-400/15 text-emerald-100"
                   : selectedAnswer === "same" &&
@@ -271,7 +271,7 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
                 isGameOver || isSubmittingAnswer || feedbackStatus !== null
               }
               onClick={() => handleSubmitAnswer("right")}
-              className={`rounded-full px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+              className={`rounded-full px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 sm:px-8 sm:py-4 sm:text-sm ${
                 selectedAnswer === "right" && feedbackStatus === "correct"
                   ? "bg-emerald-400 text-slate-950"
                   : selectedAnswer === "right" &&
@@ -283,6 +283,17 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
               {rightPlayer.name}
             </button>
           </div>
+
+          {isGameOver ? (
+            <div className="mt-8 text-left">
+              <GameOverCard
+                bestScore={gameState.bestScore}
+                correctAnswer={gameState.lastCorrectAnswer}
+                onRestartGame={handleRestartGame}
+                score={gameState.score}
+              />
+            </div>
+          ) : null}
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
@@ -294,14 +305,6 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
           />
         </section>
 
-        {isGameOver ? (
-          <GameOverCard
-            bestScore={gameState.bestScore}
-            correctAnswer={gameState.lastCorrectAnswer}
-            onRestartGame={handleRestartGame}
-            score={gameState.score}
-          />
-        ) : null}
       </section>
     </main>
   );

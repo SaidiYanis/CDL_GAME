@@ -28,8 +28,8 @@ function formatAgeLabel(birthDate: string | null): string {
 export function RosterScreen({ teams }: RosterScreenProps) {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-10 sm:px-10 lg:px-12">
-        <header className="flex flex-col gap-6 rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:gap-10 sm:px-10 sm:py-10 lg:px-12">
+        <header className="flex flex-col gap-5 rounded-[1.5rem] border border-white/10 bg-white/5 p-5 backdrop-blur-sm sm:gap-6 sm:rounded-[2rem] sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">
               Roster CDL
@@ -43,10 +43,10 @@ export function RosterScreen({ teams }: RosterScreenProps) {
           </div>
 
           <div className="flex flex-col gap-4">
-            <h1 className="text-5xl font-black tracking-[-0.04em] text-white sm:text-6xl">
+            <h1 className="text-4xl font-black tracking-[-0.04em] text-white sm:text-6xl">
               Explore les rosters, team par team.
             </h1>
-            <p className="max-w-3xl text-base leading-8 text-slate-300 sm:text-lg">
+            <p className="max-w-3xl text-sm leading-7 text-slate-300 sm:text-lg sm:leading-8">
               Clique sur une equipe ou sur les joueurs affiches pour derouler le
               bloc de stats. Tu peux ouvrir plusieurs teams en meme temps et
               comparer age, nationalite, role, note BP et titres.
@@ -58,12 +58,12 @@ export function RosterScreen({ teams }: RosterScreenProps) {
           {teams.map((team) => (
             <details
               key={team.id}
-              className="group rounded-[2rem] border border-white/10 bg-white/5 p-4 transition-colors open:border-emerald-400/30 open:bg-white/[0.07] sm:p-6"
+            className="group rounded-[1.5rem] border border-white/10 bg-white/5 p-4 transition-colors open:border-emerald-400/30 open:bg-white/[0.07] sm:rounded-[2rem] sm:p-6"
             >
               <summary className="flex cursor-pointer list-none flex-col gap-6 [&::-webkit-details-marker]:hidden">
-                <div className="flex flex-wrap items-center justify-between gap-5">
+                <div className="flex flex-wrap items-center justify-between gap-4 sm:gap-5">
                   <div className="flex items-center gap-4">
-                    <div className="relative h-16 w-16 overflow-hidden rounded-2xl bg-white/5">
+                    <div className="relative h-14 w-14 overflow-hidden rounded-2xl bg-white/5 sm:h-16 sm:w-16">
                       {team.logoUrl ? (
                         <Image
                           src={team.logoUrl}
@@ -84,7 +84,7 @@ export function RosterScreen({ teams }: RosterScreenProps) {
                       <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">
                         {team.tag}
                       </p>
-                      <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] text-white">
+                      <h2 className="mt-2 text-xl font-black tracking-[-0.04em] text-white sm:text-2xl">
                         {team.name}
                       </h2>
                     </div>
@@ -146,7 +146,7 @@ export function RosterScreen({ teams }: RosterScreenProps) {
                         <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-emerald-300">
                           {team.tag}
                         </p>
-                        <h3 className="mt-2 text-2xl font-black tracking-[-0.04em] text-white">
+                        <h3 className="mt-2 text-xl font-black tracking-[-0.04em] text-white sm:text-2xl">
                           {player.name}
                         </h3>
                       </div>

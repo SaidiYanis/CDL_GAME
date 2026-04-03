@@ -25,26 +25,31 @@ const TARGET_TITLE_WEIGHTS = [
 
 export type TitleRankAssignments = Record<string, TitleRankAnswer | null>;
 
-function getPlayerTitleCount(player: Player, score: number): number {
-  if (isCumulativeTitleRound(score)) {
+function getPlayerTitleCount(
+  player: Player,
+  comparisonMode: TitleRankGameQuestion["comparisonMode"],
+): number {
+  if (comparisonMode === "cumulative") {
     return (player.majorTitleCount ?? 0) + (player.worldTitleCount ?? 0);
   }
 
   return player.majorTitleCount ?? 0;
 }
 
-function getExpectedAnswer(
+export function getExpectedTitleRankAnswer(
   player: Player,
-  targetTitleCount: number,
-  score: number,
+  question: TitleRankGameQuestion,
 ): TitleRankAnswer {
-  const playerTitleCount = getPlayerTitleCount(player, score);
+  const playerTitleCount = getPlayerTitleCount(
+    player,
+    question.comparisonMode,
+  );
 
-  if (playerTitleCount > targetTitleCount) {
+  if (playerTitleCount > question.targetTitleCount) {
     return "higher";
   }
 
-  if (playerTitleCount < targetTitleCount) {
+  if (playerTitleCount < question.targetTitleCount) {
     return "lower";
   }
 
@@ -75,13 +80,25 @@ function createBalancedQuestion(
   targetTitleCount: number,
 ): TitleRankGameQuestion | null {
   const lowerPlayers = players.filter(
-    (player) => getPlayerTitleCount(player, score) < targetTitleCount,
+    (player) =>
+      getPlayerTitleCount(
+        player,
+        isCumulativeTitleRound(score) ? "cumulative" : "major",
+      ) < targetTitleCount,
   );
   const samePlayers = players.filter(
-    (player) => getPlayerTitleCount(player, score) === targetTitleCount,
+    (player) =>
+      getPlayerTitleCount(
+        player,
+        isCumulativeTitleRound(score) ? "cumulative" : "major",
+      ) === targetTitleCount,
   );
   const higherPlayers = players.filter(
-    (player) => getPlayerTitleCount(player, score) > targetTitleCount,
+    (player) =>
+      getPlayerTitleCount(
+        player,
+        isCumulativeTitleRound(score) ? "cumulative" : "major",
+      ) > targetTitleCount,
   );
 
   if (
@@ -168,7 +185,6 @@ function createNextTitleRankQuestion(
 function buildIncorrectAnswerSummary(
   question: TitleRankGameQuestion,
   playersById: Map<string, Player>,
-  score: number,
 ): string {
   const answerLabels: Record<TitleRankAnswer, string> = {
     higher: "+",
@@ -179,12 +195,8 @@ function buildIncorrectAnswerSummary(
     .map((playerId) => playersById.get(playerId))
     .filter((player): player is Player => player !== undefined)
     .map((player) => {
-      const expectedAnswer = getExpectedAnswer(
-        player,
-        question.targetTitleCount,
-        score,
-      );
-      const titleCount = getPlayerTitleCount(player, score);
+      const expectedAnswer = getExpectedTitleRankAnswer(player, question);
+      const titleCount = getPlayerTitleCount(player, question.comparisonMode);
 
       return `${player.name} ${answerLabels[expectedAnswer]} (${titleCount})`;
     });
@@ -234,18 +246,15 @@ export function submitTitleRankRound(
     return state;
   }
 
+  const currentQuestion = state.currentQuestion;
   const playersById = new Map(players.map((player) => [player.id, player]));
-  const allCorrect = state.currentQuestion.playerIds.every((playerId) => {
+  const allCorrect = currentQuestion.playerIds.every((playerId) => {
     const player = playersById.get(playerId);
 
     return (
       player !== undefined &&
       assignments[playerId] ===
-        getExpectedAnswer(
-          player,
-          state.currentQuestion?.targetTitleCount ?? 0,
-          state.score,
-        )
+        getExpectedTitleRankAnswer(player, currentQuestion)
     );
   });
 
@@ -254,9 +263,8 @@ export function submitTitleRankRound(
       ...state,
       bestScore: Math.max(state.bestScore, state.score),
       lastCorrectAnswer: buildIncorrectAnswerSummary(
-        state.currentQuestion,
+        currentQuestion,
         playersById,
-        state.score,
       ),
       status: "lost",
     };

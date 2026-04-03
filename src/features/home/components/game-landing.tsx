@@ -17,7 +17,7 @@ const featureHighlights = [
 export function GameLanding() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-14 px-6 py-10 sm:px-10 lg:px-12">
+      <section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6 sm:gap-14 sm:px-10 sm:py-10 lg:px-12">
         <header className="flex items-center justify-between gap-6 rounded-full border border-white/10 bg-white/5 px-5 py-4 backdrop-blur-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">
             CDL Survival Game
@@ -27,16 +27,16 @@ export function GameLanding() {
           </span>
         </header>
 
-        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-          <div className="flex flex-col gap-8">
+        <div className="grid gap-6 sm:gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+          <div className="flex flex-col gap-6 sm:gap-8">
             <div className="flex flex-col gap-6">
               <p className="text-sm font-semibold uppercase tracking-[0.4em] text-slate-400">
                 Mode Survie
               </p>
-              <h1 className="max-w-3xl text-5xl font-black tracking-[-0.04em] text-white sm:text-7xl">
+              <h1 className="max-w-3xl text-4xl font-black tracking-[-0.04em] text-white sm:text-7xl">
                 Nomme le joueur. Survis le plus longtemps possible.
               </h1>
-              <p className="max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">
+              <p className="max-w-2xl text-base leading-7 text-slate-300 sm:text-xl sm:leading-8">
                 Lance une run, bats ton record, compare ton niveau au ranking
                 global et teste ta connaissance de la scene Call of Duty League.
               </p>
@@ -45,30 +45,30 @@ export function GameLanding() {
             <div className="flex flex-col gap-4 sm:flex-row">
               <Link
                 href="/modes"
-                className="inline-flex items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300"
+                className="inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 sm:px-8 sm:py-4 sm:text-sm"
               >
                 Choisir un mode
               </Link>
               <Link
                 href="/roster"
-                className="inline-flex items-center justify-center rounded-full border border-white/10 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-200 transition-colors hover:border-emerald-400/40 hover:text-emerald-300"
+                className="inline-flex items-center justify-center rounded-full border border-white/10 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-200 transition-colors hover:border-emerald-400/40 hover:text-emerald-300 sm:px-8 sm:py-4 sm:text-sm"
               >
                 Roster CDL
               </Link>
             </div>
           </div>
 
-          <aside className="rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-emerald-500/10">
+          <aside className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 shadow-2xl shadow-emerald-500/10 sm:rounded-[2rem] sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">
               Regles
             </p>
-            <ul className="mt-8 flex flex-col gap-5">
+            <ul className="mt-6 flex flex-col gap-4 sm:mt-8 sm:gap-5">
               {survivalRules.map((rule, index) => (
                 <li
                   key={rule}
-                  className="flex gap-4 rounded-3xl bg-slate-900/60 p-5 text-sm leading-7 text-slate-200"
+                  className="flex gap-3 rounded-3xl bg-slate-900/60 p-4 text-sm leading-7 text-slate-200 sm:gap-4 sm:p-5"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-400/10 text-sm font-bold text-emerald-300">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-400/10 text-xs font-bold text-emerald-300 sm:h-10 sm:w-10 sm:text-sm">
                     {index + 1}
                   </span>
                   <span>{rule}</span>
@@ -80,7 +80,7 @@ export function GameLanding() {
 
         <section
           id="features"
-          className="rounded-[2rem] border border-white/10 bg-white/5 p-8"
+          className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8"
         >
           <div className="flex flex-col gap-4">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
@@ -91,11 +91,11 @@ export function GameLanding() {
             </h2>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <div className="mt-6 grid gap-3 sm:mt-8 sm:gap-4 md:grid-cols-2">
             {featureHighlights.map((item) => (
               <article
                 key={item}
-                className="rounded-3xl border border-white/10 bg-slate-900/50 px-6 py-5 text-sm font-medium uppercase tracking-[0.18em] text-slate-200"
+                className="rounded-3xl border border-white/10 bg-slate-900/50 px-4 py-4 text-xs font-medium uppercase tracking-[0.18em] text-slate-200 sm:px-6 sm:py-5 sm:text-sm"
               >
                 {item}
               </article>
