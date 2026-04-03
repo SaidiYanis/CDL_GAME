@@ -13,11 +13,7 @@ export type {
   TitleRankGameQuestion,
   TitleRankGameState,
 } from "@/src/types/game";
-export type {
-  LocalCdlPlayerRecord,
-  Player,
-  PlayerRole,
-} from "@/src/types/player";
+export type { Player, PlayerRole } from "@/src/types/player";
 export type { GameModeId, ModeBestScores } from "@/src/types/score";
 export type {
   GameSessionDocument,
@@ -26,7 +22,7 @@ export type {
   UserBestScoreDocument,
   UserGameStatsDocument,
 } from "@/src/types/score";
-export type { LocalCdlDataSet, LocalCdlTeamRecord, Team } from "@/src/types/team";
+export type { Team } from "@/src/types/team";
 export type {
   AuthenticatedUserProfile,
   UserProfileDocument,

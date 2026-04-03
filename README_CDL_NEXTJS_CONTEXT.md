@@ -112,9 +112,9 @@ Ressource/
 
 ### Important
 
-Au début du projet, les données doivent être lues depuis une source locale.
+En production, les metadonnees joueurs/equipes doivent venir de **Firestore**.
 
-Mais l'architecture doit être pensée pour qu'on puisse **remplacer la source locale par Firebase plus tard** sans réécrire toute la logique métier.
+Les assets images/sons restent dans `public/ressource/`, et Firestore stocke seulement les chemins `imageUrl` / `logoUrl`.
 
 ---
 
@@ -184,7 +184,6 @@ src/
       client.ts
       config.ts
     data/
-      local-player-repository.ts
       firebase-player-repository.ts
     utils/
       random.ts
@@ -559,11 +558,11 @@ Le but n'est pas juste de faire « quelque chose qui marche », mais de poser un
 - le score, le record local, le game over et le replay ;
 - une difficulte progressive ;
 - une couche `PlayerRepository` ;
-- une implementation locale `LocalPlayerRepository` basee sur `src/lib/data/cdl-data.json`.
+- une implementation Firestore `FirebasePlayerRepository`.
 
 ### Donnees locales enrichies
 
-Le fichier `src/lib/data/cdl-data.json` contient maintenant :
+La collection Firestore `players` contient maintenant :
 
 - le nom et le tag de chaque equipe ;
 - l'image/logo de chaque equipe via `team.img` ;
@@ -634,7 +633,7 @@ Le fichier `src/lib/data/cdl-data.json` contient maintenant :
 
 - afficher le logo d'equipe et quelques infos joueur utiles dans le mode actuel ;
 - mapper `team.img` dans `Team.logoUrl` ;
-- ajouter une validation/coherence de `cdl-data.json` ;
+- ajouter une validation/coherence des donnees Firestore ;
 - commiter les nouveaux assets `ressource/*` necessaires au jeu ;
 - ajouter un ecran de selection de mode.
 
@@ -658,7 +657,7 @@ Pourquoi :
 
 - definir un schema Firestore pour `teams` et `players` ;
 - creer `FirebasePlayerRepository` en gardant la meme interface que `PlayerRepository` ;
-- garder `LocalPlayerRepository` pour le dev/offline ;
+- garder `FirebasePlayerRepository` comme source runtime principale ;
 - ajouter une config d'environnement pour choisir la source de donnees ;
 - migrer les images vers Firebase Storage une fois les conventions de noms stabilisees.
 

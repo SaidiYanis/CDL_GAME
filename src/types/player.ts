@@ -13,15 +13,3 @@ export interface Player {
   teamTag: string;
   imageUrl: string;
 }
-
-export interface LocalCdlPlayerRecord {
-  name: string;
-  role: PlayerRole | null;
-  birthDate: string;
-  country: string | null;
-  world_title: number | null;
-  major_title: number | null;
-  team: string;
-  img: string;
-  note: number | null;
-}

@@ -1,69 +1,50 @@
 import type { PlayerRepository } from "@/src/features/players/services/player-repository";
-import { env } from "@/src/config/env";
-import { localPlayerRepository } from "@/src/lib/data/local-player-repository";
+import { firebasePlayerRepository } from "@/src/lib/data/firebase-player-repository";
 
 class RepositoryProvider implements PlayerRepository {
-  private readonly localRepository = localPlayerRepository;
+  private readonly repository = firebasePlayerRepository;
 
-  private async getActiveRepository(): Promise<PlayerRepository> {
-    if (env.dataSource !== "firebase") {
-      return this.localRepository;
-    }
-
-    try {
-      const { firebasePlayerRepository } = await import(
-        "@/src/lib/data/firebase-player-repository"
-      );
-
-      return firebasePlayerRepository;
-    } catch (error) {
-      console.warn(
-        "[RepositoryProvider] Firebase repository indisponible, fallback local.",
-        error,
-      );
-
-      return this.localRepository;
-    }
-  }
-
-  private async executeWithFallback<T>(
+  private async executeSafely<T>(
     repositoryAction: (repository: PlayerRepository) => Promise<T>,
+    fallbackValue: T,
   ): Promise<T> {
-    const repository = await this.getActiveRepository();
-
     try {
-      return await repositoryAction(repository);
+      return await repositoryAction(this.repository);
     } catch (error) {
-      if (repository === this.localRepository) {
-        throw error;
-      }
-
       console.warn(
-        "[RepositoryProvider] Lecture Firebase impossible, fallback local.",
+        "[RepositoryProvider] Lecture Firestore impossible.",
         error,
       );
 
-      return repositoryAction(this.localRepository);
+      return fallbackValue;
     }
   }
 
   async getPlayers() {
-    return this.executeWithFallback((repository) => repository.getPlayers());
+    return this.executeSafely(
+      (repository) => repository.getPlayers(),
+      [],
+    );
   }
 
   async getTeams() {
-    return this.executeWithFallback((repository) => repository.getTeams());
+    return this.executeSafely(
+      (repository) => repository.getTeams(),
+      [],
+    );
   }
 
   async getPlayerById(playerId: string) {
-    return this.executeWithFallback((repository) =>
-      repository.getPlayerById(playerId),
+    return this.executeSafely(
+      (repository) => repository.getPlayerById(playerId),
+      null,
     );
   }
 
   async getTeamByTag(teamTag: string) {
-    return this.executeWithFallback((repository) =>
-      repository.getTeamByTag(teamTag),
+    return this.executeSafely(
+      (repository) => repository.getTeamByTag(teamTag),
+      null,
     );
   }
 }

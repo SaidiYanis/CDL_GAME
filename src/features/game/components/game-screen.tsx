@@ -133,7 +133,7 @@ export function GameScreen({ players, teams }: GameScreenProps) {
   if (players.length === 0) {
     return (
       <GameDataFallback
-        description="Verifie que le JSON local contient des joueurs valides avec un nom, une image et un tag d'equipe."
+        description="Verifie que Firestore contient des joueurs valides avec un nom, une image et un tag d'equipe."
         title="Aucun joueur charge."
       />
     );

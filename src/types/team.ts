@@ -1,4 +1,4 @@
-import type { LocalCdlPlayerRecord, Player } from "@/src/types/player";
+import type { Player } from "@/src/types/player";
 
 export interface Team {
   id: string;
@@ -7,15 +7,4 @@ export interface Team {
   tag: string;
   logoUrl: string | null;
   players: Player[];
-}
-
-export interface LocalCdlTeamRecord {
-  name: string;
-  tag: string;
-  img: string;
-  players: LocalCdlPlayerRecord[];
-}
-
-export interface LocalCdlDataSet {
-  teams: LocalCdlTeamRecord[];
 }

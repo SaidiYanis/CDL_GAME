@@ -1,8 +1,9 @@
 import { applicationDefault, cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import cdlData from "../src/lib/data/cdl-data.json";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { slugify } from "../src/lib/utils/slugify";
-import type { GameModeId, LocalCdlDataSet, Player, Team } from "../src/types";
+import type { GameModeId, Player, PlayerRole, Team } from "../src/types";
 
 const GAME_MODE_IDS: GameModeId[] = [
   "guess-player",
@@ -12,12 +13,47 @@ const GAME_MODE_IDS: GameModeId[] = [
   "role-sort",
   "title-rank",
 ];
+const DEFAULT_IMPORT_SOURCE_PATH = path.resolve(
+  process.cwd(),
+  "scripts/firestore-import-data.local.json",
+);
+
+interface FirestoreImportPlayerRecord {
+  birthDate: string;
+  country: string | null;
+  img: string;
+  major_title: number | null;
+  name: string;
+  note: number | null;
+  role: PlayerRole | null;
+  team: string;
+  world_title: number | null;
+}
+
+interface FirestoreImportTeamRecord {
+  img: string;
+  name: string;
+  players: FirestoreImportPlayerRecord[];
+  tag: string;
+}
+
+interface FirestoreImportDataSet {
+  teams: FirestoreImportTeamRecord[];
+}
 
 function normalizeBirthDate(birthDate: string): string | null {
   return birthDate === "YYYY-MM-DD" ? null : birthDate;
 }
 
-function mapSeedData(dataSet: LocalCdlDataSet) {
+async function readImportDataSet(): Promise<FirestoreImportDataSet> {
+  const importSourcePath =
+    process.env.FIRESTORE_IMPORT_SOURCE_PATH ?? DEFAULT_IMPORT_SOURCE_PATH;
+  const rawImportData = await readFile(importSourcePath, "utf-8");
+
+  return JSON.parse(rawImportData) as FirestoreImportDataSet;
+}
+
+function mapSeedData(dataSet: FirestoreImportDataSet) {
   const teams: Team[] = dataSet.teams.map((teamRecord) => ({
     id: teamRecord.tag.toLowerCase(),
     logoUrl: teamRecord.img,
@@ -60,7 +96,7 @@ async function importFirestore() {
   }
 
   const db = getFirestore();
-  const { players, teams } = mapSeedData(cdlData as LocalCdlDataSet);
+  const { players, teams } = mapSeedData(await readImportDataSet());
   const now = new Date().toISOString();
   const batch = db.batch();
 
@@ -97,5 +133,8 @@ async function importFirestore() {
 
 importFirestore().catch((error) => {
   console.error("[import-firestore] Echec import Firestore:", error);
+  console.error(
+    "[import-firestore] Definis FIRESTORE_IMPORT_SOURCE_PATH ou cree scripts/firestore-import-data.local.json (ignore par Git).",
+  );
   process.exitCode = 1;
 });

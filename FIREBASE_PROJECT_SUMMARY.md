@@ -14,9 +14,10 @@ Le projet contient deja plusieurs modes jouables en local :
 
 La logique actuelle repose sur :
 
-- `src/lib/data/cdl-data.json` pour les donnees joueurs/equipes
-- `LocalPlayerRepository` pour exposer les donnees au jeu
-- `LocalScoreRepository` pour stocker les records par mode dans `localStorage`
+- Firestore pour les donnees joueurs/equipes
+- `FirebasePlayerRepository` pour exposer les donnees au jeu
+- `LocalScoreRepository` pour garder un record local de secours par mode
+- `FirestoreScoreRepository` pour sauvegarder les scores/profils connectes
 
 ## 2. Objectif Firebase
 
@@ -59,7 +60,7 @@ export interface UserProfileDocument {
 
 ## 4. Firestore - donnees CDL
 
-L'objectif est de migrer le contenu de `cdl-data.json` vers Firestore sans casser l'UI.
+L'objectif est de garder Firestore comme source de verite pour les metadonnees joueurs/equipes sans casser l'UI.
 
 ### Collection `teams`
 
@@ -225,8 +226,7 @@ Le code doit continuer a dependre d'interfaces, pas directement de Firebase.
 ### Donnees joueurs
 
 - `PlayerRepository`
-- `LocalPlayerRepository` pour le dev local
-- `FirebasePlayerRepository` pour Firestore + Storage
+- `FirebasePlayerRepository` pour Firestore
 
 ### Scores et rankings
 
@@ -246,9 +246,9 @@ Objectif :
 - creer le projet Firebase
 - activer Firestore
 - definir les collections `teams` et `players`
-- importer `cdl-data.json` dans Firestore
+- creer / alimenter les collections Firestore `teams` et `players`
 - creer `FirebasePlayerRepository`
-- ajouter un switch de source via variable d'environnement
+- garder les JSON de seed/import en local non trackes si un import admin est necessaire
 
 ### Phase 2 - Images locales conservees
 
@@ -275,7 +275,7 @@ Objectif :
 ## 9. Points d'attention
 
 - ne jamais exposer de secret Firebase prive cote client
-- valider les donnees importees depuis `cdl-data.json`
+- valider les donnees importees dans Firestore
 - gerer les joueurs sans `birthDate`, `role`, `rating` ou image valide
 - proteger Firestore pour empecher qu'un client ecrive le score d'un autre utilisateur
 - definir si les joueurs non connectes gardent uniquement le score local ou peuvent aussi apparaitre dans un ranking

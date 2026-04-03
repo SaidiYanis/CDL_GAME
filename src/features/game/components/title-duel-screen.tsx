@@ -126,7 +126,7 @@ export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
   if (!gameState.currentQuestion || !leftPlayer || !rightPlayer) {
     return (
       <GameDataFallback
-        description="Ce mode requiert au moins deux joueurs valides dans la source locale."
+        description="Ce mode requiert au moins deux joueurs valides dans Firestore."
         title="Pas assez de joueurs pour lancer ce duel."
       />
     );

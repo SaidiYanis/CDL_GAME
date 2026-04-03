@@ -36,6 +36,8 @@ yarn-error.log*
 
 # firebase admin credentials
 *-firebase-adminsdk-*.json
+/scripts/*.local.json
+/scripts/*.admin.json
 
 # local workflow docs
 /frontend-dev-guidelines/

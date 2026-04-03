@@ -1,13 +1,4 @@
-export type DataSource = "firebase" | "local";
-
-function getDataSource(): DataSource {
-  return process.env.NEXT_PUBLIC_CDL_DATA_SOURCE === "firebase"
-    ? "firebase"
-    : "local";
-}
-
 export const env = {
-  dataSource: getDataSource(),
   firebase: {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
