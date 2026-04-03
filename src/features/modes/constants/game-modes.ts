@@ -57,7 +57,7 @@ export const GAME_MODES: GameModeCard[] = [
   },
   {
     id: "title-rank",
-    title: "Plus / egal / moins",
+    title: "Title Radar",
     label: "Jouable",
     description:
       "Compare 5 joueurs a une cible de titres. Major only la plupart du temps, puis Major + World tous les 3 rounds.",

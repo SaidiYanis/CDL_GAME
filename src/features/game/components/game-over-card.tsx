@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 interface GameOverCardProps {
   bestScore: number;
   correctAnswer: string | null;
@@ -29,13 +31,22 @@ export function GameOverCard({
         Record actuel : {bestScore}
       </p>
 
-      <button
-        type="button"
-        onClick={onRestartGame}
-        className="mt-8 inline-flex items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300"
-      >
-        Rejouer
-      </button>
+      <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+        <button
+          type="button"
+          onClick={onRestartGame}
+          className="inline-flex items-center justify-center rounded-full bg-emerald-400 px-10 py-5 text-base font-black uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300"
+        >
+          Rejouer
+        </button>
+
+        <Link
+          href="/modes"
+          className="inline-flex items-center justify-center rounded-full border border-white/15 px-10 py-5 text-base font-black uppercase tracking-[0.2em] text-white transition-colors hover:border-white/30 hover:bg-white/5"
+        >
+          Retour au menu
+        </Link>
+      </div>
     </section>
   );
 }

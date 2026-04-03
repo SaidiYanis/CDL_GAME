@@ -168,7 +168,6 @@ function createNextTitleRankQuestion(
 function buildIncorrectAnswerSummary(
   question: TitleRankGameQuestion,
   playersById: Map<string, Player>,
-  assignments: TitleRankAssignments,
   score: number,
 ): string {
   const answerLabels: Record<TitleRankAnswer, string> = {
@@ -176,25 +175,21 @@ function buildIncorrectAnswerSummary(
     lower: "-",
     same: "=",
   };
-  const wrongPlayers = question.playerIds
+  const answerSummary = question.playerIds
     .map((playerId) => playersById.get(playerId))
     .filter((player): player is Player => player !== undefined)
-    .filter(
-      (player) =>
-        assignments[player.id] !==
-        getExpectedAnswer(player, question.targetTitleCount, score),
-    )
     .map((player) => {
       const expectedAnswer = getExpectedAnswer(
         player,
         question.targetTitleCount,
         score,
       );
+      const titleCount = getPlayerTitleCount(player, score);
 
-      return `${player.name}${answerLabels[expectedAnswer]}`;
+      return `${player.name} ${answerLabels[expectedAnswer]} (${titleCount})`;
     });
 
-  return wrongPlayers.length > 0 ? wrongPlayers.join(", ") : "Round parfait";
+  return answerSummary.length > 0 ? answerSummary.join(", ") : "Round parfait";
 }
 
 export function createEmptyTitleRankAssignments(
@@ -261,7 +256,6 @@ export function submitTitleRankRound(
       lastCorrectAnswer: buildIncorrectAnswerSummary(
         state.currentQuestion,
         playersById,
-        assignments,
         state.score,
       ),
       status: "lost",

@@ -209,13 +209,25 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
         <ScoreDisplay bestScore={gameState.bestScore} score={gameState.score} />
 
         <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
-            Plus / egal / moins
-          </p>
-          <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
-            Compare 5 joueurs a {gameState.currentQuestion.targetTitleCount}{" "}
-            titres.
-          </h1>
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+                Title Radar
+              </p>
+              <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+                Place les 5 joueurs face a la cible.
+              </h1>
+            </div>
+
+            <div className="rounded-[2rem] border border-emerald-300/20 bg-emerald-400/10 px-8 py-6 text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-emerald-300">
+                Cible titres
+              </p>
+              <p className="mt-3 text-7xl font-black tracking-[-0.08em] text-white">
+                {gameState.currentQuestion.targetTitleCount}
+              </p>
+            </div>
+          </div>
           <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">
             {getTitleRankRoundLabel(gameState.currentQuestion)}
           </p>
