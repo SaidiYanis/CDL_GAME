@@ -38,11 +38,11 @@ export const GAME_MODES: GameModeCard[] = [
   {
     id: "rating-duel",
     title: "Meilleure note BP",
-    label: "Bientot",
+    label: "Jouable",
     description:
       "Duel base sur la note BP : trouve le joueur le mieux note, ou same si les deux sont a egalite.",
-    href: null,
-    isAvailable: false,
+    href: "/game/rating-duel",
+    isAvailable: true,
   },
   {
     id: "role-sort",

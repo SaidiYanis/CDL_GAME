@@ -24,7 +24,11 @@ export interface GameState {
 
 export type DuelAnswer = "left" | "right" | "same";
 
-export type DuelPrompt = "Plus jeune" | "Plus vieux" | "Plus de titres";
+export type DuelPrompt =
+  | "Plus jeune"
+  | "Plus vieux"
+  | "Plus de titres"
+  | "Meilleure note BP";
 
 export interface DuelGameQuestion {
   correctAnswer: DuelAnswer;
