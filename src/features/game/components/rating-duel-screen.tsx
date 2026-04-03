@@ -9,29 +9,20 @@ import {
   startRatingDuelGame,
   submitRatingDuelAnswer,
 } from "@/src/features/game/utils/rating-duel-game";
+import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import type { DuelAnswer, DuelGameState, Player, Team } from "@/src/types";
-
-const RATING_DUEL_BEST_SCORE_KEY = "cdl-rating-duel-best-score";
 
 interface RatingDuelScreenProps {
   players: Player[];
   teams: Team[];
 }
 
-function readStoredBestScore(): number {
-  if (typeof window === "undefined") {
-    return 0;
-  }
-
-  const storedValue = window.localStorage.getItem(RATING_DUEL_BEST_SCORE_KEY);
-  const parsedScore = Number(storedValue);
-
-  return Number.isFinite(parsedScore) ? parsedScore : 0;
-}
-
 export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
   const [gameState, setGameState] = useState<DuelGameState>(() =>
-    startRatingDuelGame(players, readStoredBestScore()),
+    startRatingDuelGame(
+      players,
+      localScoreRepository.getBestScore("rating-duel"),
+    ),
   );
   const playersById = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
@@ -57,10 +48,7 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
   const isGameOver = gameState.status === "lost";
 
   useEffect(() => {
-    window.localStorage.setItem(
-      RATING_DUEL_BEST_SCORE_KEY,
-      String(gameState.bestScore),
-    );
+    localScoreRepository.saveBestScore("rating-duel", gameState.bestScore);
   }, [gameState.bestScore]);
 
   const handleSubmitAnswer = useCallback(

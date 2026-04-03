@@ -11,29 +11,20 @@ import {
   startSurvivalGame,
   submitSurvivalAnswer,
 } from "@/src/features/game/utils/survival-game";
+import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import type { GameState, Player, Team } from "@/src/types";
-
-const BEST_SCORE_STORAGE_KEY = "cdl-survival-best-score";
 
 interface GameScreenProps {
   players: Player[];
   teams: Team[];
 }
 
-function readStoredBestScore(): number {
-  if (typeof window === "undefined") {
-    return 0;
-  }
-
-  const storedValue = window.localStorage.getItem(BEST_SCORE_STORAGE_KEY);
-  const parsedScore = Number(storedValue);
-
-  return Number.isFinite(parsedScore) ? parsedScore : 0;
-}
-
 export function GameScreen({ players, teams }: GameScreenProps) {
   const [gameState, setGameState] = useState<GameState>(() =>
-    startSurvivalGame(players, readStoredBestScore()),
+    startSurvivalGame(
+      players,
+      localScoreRepository.getBestScore("guess-player"),
+    ),
   );
   const playersById = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
@@ -45,10 +36,7 @@ export function GameScreen({ players, teams }: GameScreenProps) {
   );
 
   useEffect(() => {
-    window.localStorage.setItem(
-      BEST_SCORE_STORAGE_KEY,
-      String(gameState.bestScore),
-    );
+    localScoreRepository.saveBestScore("guess-player", gameState.bestScore);
   }, [gameState.bestScore]);
 
   function handleSubmitAnswer(answer: string) {

@@ -9,29 +9,17 @@ import {
   startAgeDuelGame,
   submitAgeDuelAnswer,
 } from "@/src/features/game/utils/age-duel-game";
+import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import type { DuelAnswer, DuelGameState, Player, Team } from "@/src/types";
-
-const AGE_DUEL_BEST_SCORE_KEY = "cdl-age-duel-best-score";
 
 interface AgeDuelScreenProps {
   players: Player[];
   teams: Team[];
 }
 
-function readStoredBestScore(): number {
-  if (typeof window === "undefined") {
-    return 0;
-  }
-
-  const storedValue = window.localStorage.getItem(AGE_DUEL_BEST_SCORE_KEY);
-  const parsedScore = Number(storedValue);
-
-  return Number.isFinite(parsedScore) ? parsedScore : 0;
-}
-
 export function AgeDuelScreen({ players, teams }: AgeDuelScreenProps) {
   const [gameState, setGameState] = useState<DuelGameState>(() =>
-    startAgeDuelGame(players, readStoredBestScore()),
+    startAgeDuelGame(players, localScoreRepository.getBestScore("age-duel")),
   );
   const playersById = useMemo(
     () => new Map(players.map((player) => [player.id, player])),
@@ -57,10 +45,7 @@ export function AgeDuelScreen({ players, teams }: AgeDuelScreenProps) {
   const isGameOver = gameState.status === "lost";
 
   useEffect(() => {
-    window.localStorage.setItem(
-      AGE_DUEL_BEST_SCORE_KEY,
-      String(gameState.bestScore),
-    );
+    localScoreRepository.saveBestScore("age-duel", gameState.bestScore);
   }, [gameState.bestScore]);
 
   const handleSubmitAnswer = useCallback(

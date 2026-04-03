@@ -11,9 +11,9 @@ import {
   submitRoleSortRound,
   type RoleAssignments,
 } from "@/src/features/game/utils/role-sort-game";
+import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import type { Player, PlayerRole, RoleSortGameState, Team } from "@/src/types";
 
-const ROLE_SORT_BEST_SCORE_KEY = "cdl-role-sort-best-score";
 const ROLE_CHOICES: PlayerRole[] = ["AR", "SMG"];
 
 interface RoleSortScreenProps {
@@ -24,17 +24,6 @@ interface RoleSortScreenProps {
 interface RoleSortSession {
   assignments: RoleAssignments;
   gameState: RoleSortGameState;
-}
-
-function readStoredBestScore(): number {
-  if (typeof window === "undefined") {
-    return 0;
-  }
-
-  const storedValue = window.localStorage.getItem(ROLE_SORT_BEST_SCORE_KEY);
-  const parsedScore = Number(storedValue);
-
-  return Number.isFinite(parsedScore) ? parsedScore : 0;
 }
 
 function getCardBorderColor(
@@ -54,7 +43,10 @@ function getCardBorderColor(
 export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
   const [{ assignments, gameState }, setSession] = useState<RoleSortSession>(
     () => {
-      const initialGameState = startRoleSortGame(players, readStoredBestScore());
+      const initialGameState = startRoleSortGame(
+        players,
+        localScoreRepository.getBestScore("role-sort"),
+      );
 
       return {
         assignments: createEmptyRoleAssignments(
@@ -85,10 +77,7 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
   const isGameOver = gameState.status === "lost";
 
   useEffect(() => {
-    window.localStorage.setItem(
-      ROLE_SORT_BEST_SCORE_KEY,
-      String(gameState.bestScore),
-    );
+    localScoreRepository.saveBestScore("role-sort", gameState.bestScore);
   }, [gameState.bestScore]);
 
   const handleSelectRole = useCallback(
