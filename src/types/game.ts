@@ -45,3 +45,15 @@ export interface DuelGameState {
   status: GameStatus;
   usedPairKeys: string[];
 }
+
+export interface RoleSortGameQuestion {
+  playerIds: string[];
+}
+
+export interface RoleSortGameState {
+  bestScore: number;
+  currentQuestion: RoleSortGameQuestion | null;
+  lastCorrectAnswer: string | null;
+  score: number;
+  status: GameStatus;
+}

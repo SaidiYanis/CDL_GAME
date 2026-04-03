@@ -7,6 +7,8 @@ export type {
   GameQuestionMode,
   GameState,
   GameStatus,
+  RoleSortGameQuestion,
+  RoleSortGameState,
 } from "@/src/types/game";
 export type {
   LocalCdlPlayerRecord,

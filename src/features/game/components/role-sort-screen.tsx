@@ -1,0 +1,268 @@
+"use client";
+
+import Image from "next/image";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { GameOverCard } from "@/src/features/game/components/game-over-card";
+import { ScoreDisplay } from "@/src/features/game/components/score-display";
+import {
+  createEmptyRoleAssignments,
+  startRoleSortGame,
+  submitRoleSortRound,
+  type RoleAssignments,
+} from "@/src/features/game/utils/role-sort-game";
+import type { Player, PlayerRole, RoleSortGameState, Team } from "@/src/types";
+
+const ROLE_SORT_BEST_SCORE_KEY = "cdl-role-sort-best-score";
+const ROLE_CHOICES: PlayerRole[] = ["AR", "SMG"];
+
+interface RoleSortScreenProps {
+  players: Player[];
+  teams: Team[];
+}
+
+interface RoleSortSession {
+  assignments: RoleAssignments;
+  gameState: RoleSortGameState;
+}
+
+function readStoredBestScore(): number {
+  if (typeof window === "undefined") {
+    return 0;
+  }
+
+  const storedValue = window.localStorage.getItem(ROLE_SORT_BEST_SCORE_KEY);
+  const parsedScore = Number(storedValue);
+
+  return Number.isFinite(parsedScore) ? parsedScore : 0;
+}
+
+function getCardBorderColor(
+  selectedRole: PlayerRole | null,
+  expectedRole: PlayerRole | null,
+  isGameOver: boolean,
+): string {
+  if (!isGameOver) {
+    return selectedRole ? "border-emerald-300/40" : "border-white/10";
+  }
+
+  return selectedRole === expectedRole
+    ? "border-emerald-300/50"
+    : "border-rose-300/50";
+}
+
+export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
+  const [{ assignments, gameState }, setSession] = useState<RoleSortSession>(
+    () => {
+      const initialGameState = startRoleSortGame(players, readStoredBestScore());
+
+      return {
+        assignments: createEmptyRoleAssignments(
+          initialGameState.currentQuestion,
+        ),
+        gameState: initialGameState,
+      };
+    },
+  );
+  const playersById = useMemo(
+    () => new Map(players.map((player) => [player.id, player])),
+    [players],
+  );
+  const teamsByTag = useMemo(
+    () => new Map(teams.map((team) => [team.tag, team])),
+    [teams],
+  );
+  const roundPlayers = useMemo(
+    () =>
+      gameState.currentQuestion?.playerIds
+        .map((playerId) => playersById.get(playerId))
+        .filter((player): player is Player => player !== undefined) ?? [],
+    [gameState.currentQuestion?.playerIds, playersById],
+  );
+  const allPlayersSorted = roundPlayers.every(
+    (player) => assignments[player.id] !== null,
+  );
+  const isGameOver = gameState.status === "lost";
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      ROLE_SORT_BEST_SCORE_KEY,
+      String(gameState.bestScore),
+    );
+  }, [gameState.bestScore]);
+
+  const handleSelectRole = useCallback(
+    (playerId: string, role: PlayerRole) => {
+      setSession((currentSession) => ({
+        ...currentSession,
+        assignments: {
+          ...currentSession.assignments,
+          [playerId]: role,
+        },
+      }));
+    },
+    [],
+  );
+
+  const handleSubmitRound = useCallback(() => {
+    setSession((currentSession) => {
+      const nextGameState = submitRoleSortRound(
+        currentSession.gameState,
+        players,
+        currentSession.assignments,
+      );
+
+      return {
+        assignments: createEmptyRoleAssignments(nextGameState.currentQuestion),
+        gameState: nextGameState,
+      };
+    });
+  }, [players]);
+
+  const handleRestartGame = useCallback(() => {
+    setSession((currentSession) => {
+      const nextGameState = startRoleSortGame(
+        players,
+        currentSession.gameState.bestScore,
+      );
+
+      return {
+        assignments: createEmptyRoleAssignments(nextGameState.currentQuestion),
+        gameState: nextGameState,
+      };
+    });
+  }, [players]);
+
+  if (!gameState.currentQuestion || roundPlayers.length === 0) {
+    return (
+      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+        <section className="mx-auto max-w-3xl rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-rose-300">
+            Donnees indisponibles
+          </p>
+          <h1 className="mt-5 text-4xl font-black tracking-[-0.04em]">
+            Pas assez de joueurs avec un role AR/SMG renseigne.
+          </h1>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+        <ScoreDisplay
+          bestScore={gameState.bestScore}
+          score={gameState.score}
+        />
+
+        <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+            Tri AR / SMG
+          </p>
+          <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+            Classe les 10 joueurs par role.
+          </h1>
+          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">
+            Assigne chaque joueur en AR ou SMG, puis valide le round. Une seule
+            erreur termine la run.
+          </p>
+
+          <button
+            type="button"
+            disabled={!allPlayersSorted || isGameOver}
+            onClick={handleSubmitRound}
+            className="mt-8 inline-flex items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Valider le tri
+          </button>
+        </section>
+
+        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+          {roundPlayers.map((player) => {
+            const team = teamsByTag.get(player.teamTag) ?? null;
+            const selectedRole = assignments[player.id] ?? null;
+
+            return (
+              <article
+                key={player.id}
+                className={`rounded-[2rem] border bg-white/5 p-4 ${getCardBorderColor(
+                  selectedRole,
+                  player.role,
+                  isGameOver,
+                )}`}
+              >
+                <div className="relative aspect-square overflow-hidden rounded-[1.5rem] bg-slate-900">
+                  <Image
+                    src={player.imageUrl}
+                    alt={`Portrait de ${player.name}`}
+                    fill
+                    sizes="(max-width: 768px) 50vw, 240px"
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+
+                <div className="mt-4 flex items-center gap-3">
+                  {team?.logoUrl ? (
+                    <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-white/5">
+                      <Image
+                        src={team.logoUrl}
+                        alt={`Logo ${team.name}`}
+                        fill
+                        sizes="40px"
+                        className="object-contain p-1.5"
+                        unoptimized
+                      />
+                    </div>
+                  ) : null}
+
+                  <div className="min-w-0">
+                    <h2 className="truncate text-lg font-black tracking-[-0.04em] text-white">
+                      {player.name}
+                    </h2>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                      {team?.tag ?? player.teamTag} / {player.country ?? "--"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {ROLE_CHOICES.map((roleChoice) => (
+                    <button
+                      key={`${player.id}-${roleChoice}`}
+                      type="button"
+                      disabled={isGameOver}
+                      onClick={() => handleSelectRole(player.id, roleChoice)}
+                      className={`rounded-2xl px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors disabled:cursor-not-allowed ${
+                        selectedRole === roleChoice
+                          ? "bg-emerald-400 text-slate-950"
+                          : "bg-slate-900/70 text-white hover:bg-white/10"
+                      }`}
+                    >
+                      {roleChoice}
+                    </button>
+                  ))}
+                </div>
+
+                {isGameOver ? (
+                  <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                    Reponse: {player.role}
+                  </p>
+                ) : null}
+              </article>
+            );
+          })}
+        </section>
+
+        {isGameOver ? (
+          <GameOverCard
+            bestScore={gameState.bestScore}
+            correctAnswer={gameState.lastCorrectAnswer}
+            onRestartGame={handleRestartGame}
+            score={gameState.score}
+          />
+        ) : null}
+      </section>
+    </main>
+  );
+}

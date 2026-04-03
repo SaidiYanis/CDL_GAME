@@ -27,13 +27,13 @@ export function DuelPlayerCard({
         </p>
       </div>
 
-      <div className="relative mt-5 aspect-[4/5] overflow-hidden rounded-[1.5rem] bg-slate-900">
+      <div className="relative mt-5 aspect-square overflow-hidden rounded-[1.5rem] bg-slate-900">
         <Image
           src={player.imageUrl}
           alt={`Portrait de ${player.name}`}
           fill
           sizes="(max-width: 768px) 100vw, 420px"
-          className="object-cover"
+          className="object-contain"
           unoptimized
         />
       </div>

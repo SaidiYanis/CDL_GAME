@@ -47,10 +47,10 @@ export const GAME_MODES: GameModeCard[] = [
   {
     id: "role-sort",
     title: "Trier AR / SMG",
-    label: "Bientot",
+    label: "Jouable",
     description:
       "Trie un pool de joueurs entre AR et SMG et valide ton classement sans te tromper.",
-    href: null,
-    isAvailable: false,
+    href: "/game/role-sort",
+    isAvailable: true,
   },
 ];

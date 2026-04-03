@@ -18,7 +18,7 @@ function formatTextValue(value: string | null): string {
 export function PlayerCard({ player, score, team }: PlayerCardProps) {
   return (
     <section className="rounded-[2rem] border border-white/10 bg-white/5 p-5 sm:p-6">
-      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[1.5rem] bg-slate-900">
+      <div className="relative aspect-square w-full overflow-hidden rounded-[1.5rem] bg-slate-900">
         <Image
           key={`${player.imageUrl}-${score}`}
           src={player.imageUrl}
@@ -26,7 +26,7 @@ export function PlayerCard({ player, score, team }: PlayerCardProps) {
           fill
           priority
           sizes="(max-width: 768px) 100vw, 480px"
-          className="object-cover"
+          className="object-contain"
           unoptimized
         />
       </div>
