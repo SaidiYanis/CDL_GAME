@@ -70,7 +70,7 @@ export function GameScreen({ players, teams }: GameScreenProps) {
     hasLoadedLocalBestScoreRef.current = true;
     queueMicrotask(() => {
       setGameState((currentState) =>
-        currentState.score === 0 && currentState.status === "playing"
+        currentState.score === 0 && currentState.status === "idle"
           ? startSurvivalGame(
               players,
               localScoreRepository.getBestScore("guess-player"),
