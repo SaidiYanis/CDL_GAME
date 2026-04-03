@@ -45,10 +45,10 @@ export function GameLanding() {
 
             <div className="flex flex-col gap-4 sm:flex-row">
               <Link
-                href="/game"
+                href="/modes"
                 className="inline-flex items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300"
               >
-                Lancer une partie
+                Choisir un mode
               </Link>
               <a
                 href="#roadmap"
