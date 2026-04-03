@@ -5,6 +5,7 @@ import { DuelPlayerCard } from "@/src/features/game/components/duel-player-card"
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
 import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
+import { RoundSuccessOverlay } from "@/src/features/game/components/round-success-overlay";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import {
   getTitleDuelRoundLabel,
@@ -18,7 +19,7 @@ import {
 } from "@/src/lib/game/game-session-client";
 import type { DuelAnswer, DuelGameState, Player, Team } from "@/src/types";
 
-const DUEL_FEEDBACK_DELAY_MS = 280;
+const DUEL_FEEDBACK_DELAY_MS = 500;
 
 interface TitleDuelScreenProps {
   players: Player[];
@@ -216,6 +217,7 @@ export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+      <RoundSuccessOverlay isVisible={feedbackStatus === "correct"} />
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-5 sm:gap-8">
         <GameModeNavigation
           onNavigateBack={syncCurrentRunLoss}
@@ -236,6 +238,18 @@ export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
           <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">
             {getTitleDuelRoundLabel(gameState.score)}
           </p>
+
+          {isGameOver ? (
+            <div className="mt-8 text-left">
+              <GameOverCard
+                bestScore={gameState.bestScore}
+                correctAnswer={gameState.lastCorrectAnswer}
+                onRestartGame={handleRestartGame}
+                score={gameState.score}
+              />
+            </div>
+          ) : null}
+
           <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:justify-center sm:gap-4">
             <button
               type="button"
@@ -290,16 +304,6 @@ export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
             </button>
           </div>
 
-          {isGameOver ? (
-            <div className="mt-8 text-left">
-              <GameOverCard
-                bestScore={gameState.bestScore}
-                correctAnswer={gameState.lastCorrectAnswer}
-                onRestartGame={handleRestartGame}
-                score={gameState.score}
-              />
-            </div>
-          ) : null}
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">

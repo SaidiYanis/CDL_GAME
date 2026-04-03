@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
 import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
+import { RoundSuccessOverlay } from "@/src/features/game/components/round-success-overlay";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import { CountryFlagLabel } from "@/src/features/common/components/country-flag-label";
 import {
@@ -21,6 +22,7 @@ import {
 import type { Player, PlayerRole, RoleSortGameState, Team } from "@/src/types";
 
 const ROLE_CHOICES: PlayerRole[] = ["AR", "SMG"];
+const ROUND_SUCCESS_DELAY_MS = 500;
 
 interface RoleSortScreenProps {
   players: Player[];
@@ -48,7 +50,9 @@ function getCardBorderColor(
 
 export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
+  const feedbackTimeoutRef = useRef<number | null>(null);
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
+  const [feedbackStatus, setFeedbackStatus] = useState<"correct" | null>(null);
   const [isSubmittingRound, setIsSubmittingRound] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [{ assignments, gameState }, setSession] = useState<RoleSortSession>(
@@ -121,6 +125,15 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
     });
   }, []);
 
+  useEffect(
+    () => () => {
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
   const handleSelectRole = useCallback(
     (playerId: string, role: PlayerRole) => {
       setSession((currentSession) => ({
@@ -149,13 +162,26 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
       );
 
       playGameFeedbackSound(payload.isCorrectAnswer ? "win" : "lose");
-      setSession({
-        assignments:
-          payload.gameState.status === "lost"
-            ? assignments
-            : createEmptyRoleAssignments(payload.gameState.currentQuestion),
-        gameState: payload.gameState,
-      });
+
+      if (!payload.isCorrectAnswer) {
+        setSession({
+          assignments,
+          gameState: payload.gameState,
+        });
+        return;
+      }
+
+      setFeedbackStatus("correct");
+
+      feedbackTimeoutRef.current = window.setTimeout(() => {
+        setSession({
+          assignments: createEmptyRoleAssignments(
+            payload.gameState.currentQuestion,
+          ),
+          gameState: payload.gameState,
+        });
+        setFeedbackStatus(null);
+      }, ROUND_SUCCESS_DELAY_MS);
     } catch (error) {
       setApiErrorMessage(
         error instanceof Error
@@ -168,6 +194,7 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
   }, [assignments, isSubmittingRound, sessionId]);
 
   const handleRestartGame = useCallback(() => {
+    setFeedbackStatus(null);
     setSession((currentSession) => ({
       assignments: {},
       gameState: {
@@ -238,6 +265,7 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+      <RoundSuccessOverlay isVisible={feedbackStatus === "correct"} />
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 sm:gap-8">
         <GameModeNavigation
           onNavigateBack={syncCurrentRunLoss}
@@ -260,15 +288,6 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
             erreur termine la run.
           </p>
 
-          <button
-            type="button"
-            disabled={!allPlayersSorted || isGameOver || isSubmittingRound}
-            onClick={handleSubmitRound}
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-8 sm:px-8 sm:py-4 sm:text-sm"
-          >
-            Valider le tri
-          </button>
-
           {isGameOver ? (
             <div className="mt-8">
               <GameOverCard
@@ -279,6 +298,16 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
               />
             </div>
           ) : null}
+
+          <button
+            type="button"
+            disabled={!allPlayersSorted || isGameOver || isSubmittingRound}
+            onClick={handleSubmitRound}
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-8 sm:px-8 sm:py-4 sm:text-sm"
+          >
+            Valider le tri
+          </button>
+
         </section>
 
         <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
@@ -336,7 +365,11 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
                     <button
                       key={`${player.id}-${roleChoice}`}
                       type="button"
-                      disabled={isGameOver}
+                      disabled={
+                        isGameOver ||
+                        isSubmittingRound ||
+                        feedbackStatus === "correct"
+                      }
                       onClick={() => handleSelectRole(player.id, roleChoice)}
                       className={`rounded-2xl px-4 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-colors disabled:cursor-not-allowed ${
                         selectedRole === roleChoice

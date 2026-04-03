@@ -6,6 +6,7 @@ import { CountryFlagLabel } from "@/src/features/common/components/country-flag-
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
 import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
+import { RoundSuccessOverlay } from "@/src/features/game/components/round-success-overlay";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import {
   createEmptyTitleRankAssignments,
@@ -35,6 +36,7 @@ const TITLE_RANK_CHOICES: Array<{
   { label: "=", value: "same" },
   { label: "-", value: "lower" },
 ];
+const ROUND_SUCCESS_DELAY_MS = 500;
 
 interface TitleRankScreenProps {
   players: Player[];
@@ -62,7 +64,9 @@ function getPlayerCardBorderColor(
 
 export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
+  const feedbackTimeoutRef = useRef<number | null>(null);
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
+  const [feedbackStatus, setFeedbackStatus] = useState<"correct" | null>(null);
   const [isSubmittingRound, setIsSubmittingRound] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [{ assignments, gameState }, setSession] = useState<TitleRankSession>(
@@ -135,6 +139,15 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
     });
   }, []);
 
+  useEffect(
+    () => () => {
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
   const handleSelectAnswer = useCallback(
     (playerId: string, answer: TitleRankAnswer) => {
       setSession((currentSession) => ({
@@ -163,15 +176,26 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
       );
 
       playGameFeedbackSound(payload.isCorrectAnswer ? "win" : "lose");
-      setSession({
-        assignments:
-          payload.gameState.status === "lost"
-            ? assignments
-            : createEmptyTitleRankAssignments(
-                payload.gameState.currentQuestion,
-              ),
-        gameState: payload.gameState,
-      });
+
+      if (!payload.isCorrectAnswer) {
+        setSession({
+          assignments,
+          gameState: payload.gameState,
+        });
+        return;
+      }
+
+      setFeedbackStatus("correct");
+
+      feedbackTimeoutRef.current = window.setTimeout(() => {
+        setSession({
+          assignments: createEmptyTitleRankAssignments(
+            payload.gameState.currentQuestion,
+          ),
+          gameState: payload.gameState,
+        });
+        setFeedbackStatus(null);
+      }, ROUND_SUCCESS_DELAY_MS);
     } catch (error) {
       setApiErrorMessage(
         error instanceof Error
@@ -184,6 +208,7 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
   }, [assignments, isSubmittingRound, sessionId]);
 
   const handleRestartGame = useCallback(() => {
+    setFeedbackStatus(null);
     setSession((currentSession) => ({
       assignments: {},
       gameState: {
@@ -259,6 +284,7 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+      <RoundSuccessOverlay isVisible={feedbackStatus === "correct"} />
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 sm:gap-8">
         <GameModeNavigation
           onNavigateBack={syncCurrentRunLoss}
@@ -295,15 +321,6 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
             moins. Une seule erreur termine la run.
           </p>
 
-          <button
-            type="button"
-            disabled={!allPlayersAnswered || isGameOver || isSubmittingRound}
-            onClick={handleSubmitRound}
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-8 sm:px-8 sm:py-4 sm:text-sm"
-          >
-            Valider les 5 choix
-          </button>
-
           {isGameOver ? (
             <div className="mt-8">
               <GameOverCard
@@ -314,6 +331,16 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
               />
             </div>
           ) : null}
+
+          <button
+            type="button"
+            disabled={!allPlayersAnswered || isGameOver || isSubmittingRound}
+            onClick={handleSubmitRound}
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-8 sm:px-8 sm:py-4 sm:text-sm"
+          >
+            Valider les 5 choix
+          </button>
+
         </section>
 
         <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
@@ -375,7 +402,11 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
                     <button
                       key={`${player.id}-${choice.value}`}
                       type="button"
-                      disabled={isGameOver}
+                      disabled={
+                        isGameOver ||
+                        isSubmittingRound ||
+                        feedbackStatus === "correct"
+                      }
                       onClick={() => handleSelectAnswer(player.id, choice.value)}
                       className={`rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-[0.2em] transition-colors disabled:cursor-not-allowed ${
                         selectedAnswer === choice.value

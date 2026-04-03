@@ -7,6 +7,7 @@ import { GameDataFallback } from "@/src/features/game/components/game-data-fallb
 import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { PlayerCard } from "@/src/features/game/components/player-card";
+import { RoundSuccessOverlay } from "@/src/features/game/components/round-success-overlay";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
@@ -18,7 +19,7 @@ import {
 import { SCORE_FOR_TEAM_HINT } from "@/src/features/game/constants/game-rules";
 import type { GameState, Player, Team } from "@/src/types";
 
-const ANSWER_FEEDBACK_DELAY_MS = 280;
+const ANSWER_FEEDBACK_DELAY_MS = 500;
 
 interface GameScreenProps {
   players: Player[];
@@ -113,7 +114,18 @@ export function GameScreen({ players, teams }: GameScreenProps) {
         playGameFeedbackSound(payload.isCorrectAnswer ? "win" : "lose");
 
         if (submittedQuestionMode === "free-input") {
-          setGameState(payload.gameState);
+          if (!payload.isCorrectAnswer) {
+            setGameState(payload.gameState);
+            return;
+          }
+
+          setFeedbackStatus("correct");
+
+          feedbackTimeoutRef.current = window.setTimeout(() => {
+            setGameState(payload.gameState);
+            setFeedbackStatus(null);
+          }, ANSWER_FEEDBACK_DELAY_MS);
+
           return;
         }
 
@@ -226,6 +238,7 @@ export function GameScreen({ players, teams }: GameScreenProps) {
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
+      <RoundSuccessOverlay isVisible={feedbackStatus === "correct"} />
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-5 sm:gap-6">
         <GameModeNavigation
           onNavigateBack={syncCurrentRunLoss}
@@ -254,6 +267,17 @@ export function GameScreen({ players, teams }: GameScreenProps) {
               Qui est sur la photo ?
             </h1>
 
+            {isGameOver ? (
+              <div className="mt-8">
+                <GameOverCard
+                  bestScore={gameState.bestScore}
+                  correctAnswer={gameState.lastCorrectAnswer}
+                  onRestartGame={handleRestartGame}
+                  score={gameState.score}
+                />
+              </div>
+            ) : null}
+
             <div className="mt-8">
               {currentQuestion.mode === "free-input" ? (
                 <AnswerInput
@@ -276,16 +300,6 @@ export function GameScreen({ players, teams }: GameScreenProps) {
               )}
             </div>
 
-            {isGameOver ? (
-              <div className="mt-8">
-                <GameOverCard
-                  bestScore={gameState.bestScore}
-                  correctAnswer={gameState.lastCorrectAnswer}
-                  onRestartGame={handleRestartGame}
-                  score={gameState.score}
-                />
-              </div>
-            ) : null}
           </section>
           </div>
         </div>
