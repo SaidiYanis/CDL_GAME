@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerPlayers } from "@/src/lib/data/firebase-admin-player-repository";
 import { getFirebaseAdminAuth, getFirebaseAdminDb } from "@/src/lib/firebase/admin";
 import {
+  serializeServerGameState,
   submitServerGameAnswer,
   type AnyServerGameAnswer,
   type AnyServerGameState,
@@ -161,7 +162,7 @@ export async function POST(request: Request) {
 
     if (session.status !== "playing") {
       return NextResponse.json({
-        gameState: session.gameState,
+        gameState: serializeServerGameState(body.modeId, session.gameState),
         isCorrectAnswer: false,
       });
     }
@@ -221,10 +222,10 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      gameState: {
+      gameState: serializeServerGameState(body.modeId, {
         ...gameState,
         bestScore,
-      },
+      } as AnyServerGameState),
       isCorrectAnswer,
     });
   } catch (error) {

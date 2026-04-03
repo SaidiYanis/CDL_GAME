@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerPlayers } from "@/src/lib/data/firebase-admin-player-repository";
 import { getFirebaseAdminAuth, getFirebaseAdminDb } from "@/src/lib/firebase/admin";
-import { startServerGameSession } from "@/src/lib/game/server-game-session-engine";
+import {
+  serializeServerGameState,
+  startServerGameSession,
+} from "@/src/lib/game/server-game-session-engine";
 import { GAME_MODE_IDS, type GameModeId } from "@/src/types";
 
 function getBearerToken(request: Request): string | null {
@@ -77,7 +80,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      gameState,
+      gameState: serializeServerGameState(body.modeId, gameState),
       sessionId: sessionDocumentRef.id,
       startedAt,
     });

@@ -63,7 +63,7 @@ export interface ServerGameSubmitResult<M extends GameModeId = GameModeId> {
   isCorrectAnswer: boolean;
 }
 
-function sanitizeState(
+export function serializeServerGameState(
   modeId: GameModeId,
   gameState: AnyServerGameState,
 ): AnyServerGameState {
@@ -126,35 +126,17 @@ export function startServerGameSession<M extends GameModeId>(
 ): ServerGameStateByMode[M] {
   switch (modeId) {
     case "guess-player":
-      return sanitizeState(
-        modeId,
-        startSurvivalGame(players, bestScore),
-      ) as ServerGameStateByMode[M];
+      return startSurvivalGame(players, bestScore) as ServerGameStateByMode[M];
     case "age-duel":
-      return sanitizeState(
-        modeId,
-        startAgeDuelGame(players, bestScore),
-      ) as ServerGameStateByMode[M];
+      return startAgeDuelGame(players, bestScore) as ServerGameStateByMode[M];
     case "title-duel":
-      return sanitizeState(
-        modeId,
-        startTitleDuelGame(players, bestScore),
-      ) as ServerGameStateByMode[M];
+      return startTitleDuelGame(players, bestScore) as ServerGameStateByMode[M];
     case "rating-duel":
-      return sanitizeState(
-        modeId,
-        startRatingDuelGame(players, bestScore),
-      ) as ServerGameStateByMode[M];
+      return startRatingDuelGame(players, bestScore) as ServerGameStateByMode[M];
     case "role-sort":
-      return sanitizeState(
-        modeId,
-        startRoleSortGame(players, bestScore),
-      ) as ServerGameStateByMode[M];
+      return startRoleSortGame(players, bestScore) as ServerGameStateByMode[M];
     case "title-rank":
-      return sanitizeState(
-        modeId,
-        startTitleRankGame(players, bestScore),
-      ) as ServerGameStateByMode[M];
+      return startTitleRankGame(players, bestScore) as ServerGameStateByMode[M];
   }
 }
 
@@ -173,7 +155,7 @@ export function submitServerGameAnswer<M extends GameModeId>(
       );
 
       return {
-        gameState: sanitizeState(modeId, nextState) as ServerGameStateByMode[M],
+        gameState: nextState as ServerGameStateByMode[M],
         isCorrectAnswer: getPersistedCorrectness(
           currentState,
           nextState as ServerGameStateByMode[M],
@@ -189,7 +171,7 @@ export function submitServerGameAnswer<M extends GameModeId>(
       );
 
       return {
-        gameState: sanitizeState(modeId, nextState) as ServerGameStateByMode[M],
+        gameState: nextState as ServerGameStateByMode[M],
         isCorrectAnswer: getPersistedCorrectness(
           currentState,
           nextState as ServerGameStateByMode[M],
@@ -205,7 +187,7 @@ export function submitServerGameAnswer<M extends GameModeId>(
       );
 
       return {
-        gameState: sanitizeState(modeId, nextState) as ServerGameStateByMode[M],
+        gameState: nextState as ServerGameStateByMode[M],
         isCorrectAnswer: getPersistedCorrectness(
           currentState,
           nextState as ServerGameStateByMode[M],
@@ -221,7 +203,7 @@ export function submitServerGameAnswer<M extends GameModeId>(
       );
 
       return {
-        gameState: sanitizeState(modeId, nextState) as ServerGameStateByMode[M],
+        gameState: nextState as ServerGameStateByMode[M],
         isCorrectAnswer: getPersistedCorrectness(
           currentState,
           nextState as ServerGameStateByMode[M],
@@ -237,7 +219,7 @@ export function submitServerGameAnswer<M extends GameModeId>(
       );
 
       return {
-        gameState: sanitizeState(modeId, nextState) as ServerGameStateByMode[M],
+        gameState: nextState as ServerGameStateByMode[M],
         isCorrectAnswer: getPersistedCorrectness(
           currentState,
           nextState as ServerGameStateByMode[M],
@@ -253,7 +235,7 @@ export function submitServerGameAnswer<M extends GameModeId>(
       );
 
       return {
-        gameState: sanitizeState(modeId, nextState) as ServerGameStateByMode[M],
+        gameState: nextState as ServerGameStateByMode[M],
         isCorrectAnswer: getPersistedCorrectness(
           currentState,
           nextState as ServerGameStateByMode[M],
