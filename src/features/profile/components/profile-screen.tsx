@@ -6,16 +6,39 @@ import { useEffect, useMemo, useState } from "react";
 import { GoogleAuthCard } from "@/src/features/auth/components/google-auth-card";
 import { useGoogleAuthSession } from "@/src/features/auth/hooks/use-google-auth-session";
 import { GAME_MODES } from "@/src/features/modes/constants/game-modes";
-import { firestoreScoreRepository } from "@/src/lib/data/firebase-score-repository";
 import type { GameModeId, UserGameStatsDocument } from "@/src/types";
 
 type UserStatsByMode = Partial<Record<GameModeId, UserGameStatsDocument>>;
 
-export function ProfileScreen() {
+interface PublicUserProfile {
+  displayName: string;
+  photoUrl: string | null;
+  uid: string;
+}
+
+interface ProfileScreenProps {
+  profileUserId?: string;
+}
+
+export function ProfileScreen({ profileUserId }: ProfileScreenProps) {
   const { authState } = useGoogleAuthSession();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [profileUser, setProfileUser] = useState<PublicUserProfile | null>(null);
   const [userStatsByMode, setUserStatsByMode] = useState<UserStatsByMode>({});
+  const ownProfileId = authState.userProfile?.uid ?? null;
+  const viewedUserId = profileUserId ?? ownProfileId;
+  const isOwnProfile = Boolean(
+    ownProfileId && viewedUserId && ownProfileId === viewedUserId,
+  );
+  const displayName =
+    profileUser?.displayName ??
+    (isOwnProfile ? authState.userProfile?.displayName : null) ??
+    "Profil joueur";
+  const photoUrl =
+    profileUser?.photoUrl ??
+    (isOwnProfile ? authState.userProfile?.photoUrl : null) ??
+    null;
 
   const totalGamesPlayed = useMemo(
     () =>
@@ -37,30 +60,37 @@ export function ProfileScreen() {
   );
 
   useEffect(() => {
-    const userProfile = authState.userProfile;
-
-    if (!userProfile) {
+    if (!viewedUserId) {
+      setProfileUser(null);
       setUserStatsByMode({});
       return;
     }
 
-    const userId = userProfile.uid;
     let isMounted = true;
 
     async function loadUserStats() {
       setIsLoadingStats(true);
 
       try {
-        const statsDocuments =
-          await firestoreScoreRepository.getUserGameStats(userId);
+        const response = await fetch(`/api/user-profiles/${viewedUserId}`);
+        const payload = (await response.json()) as {
+          error?: string;
+          statsDocuments?: UserGameStatsDocument[];
+          userProfile?: PublicUserProfile;
+        };
+
+        if (!response.ok || !payload.userProfile || !payload.statsDocuments) {
+          throw new Error(payload.error ?? "Impossible de charger ce profil.");
+        }
 
         if (!isMounted) {
           return;
         }
 
+        setProfileUser(payload.userProfile);
         setUserStatsByMode(
           Object.fromEntries(
-            statsDocuments.map((statsDocument) => [
+            payload.statsDocuments.map((statsDocument) => [
               statsDocument.modeId,
               statsDocument,
             ]),
@@ -89,7 +119,7 @@ export function ProfileScreen() {
     return () => {
       isMounted = false;
     };
-  }, [authState.userProfile]);
+  }, [viewedUserId]);
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 sm:py-10">
@@ -101,10 +131,12 @@ export function ProfileScreen() {
                 Profil joueur
               </p>
               <h1 className="mt-4 text-4xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-7xl">
-                Tes stats CDL.
+                {isOwnProfile ? "Tes stats CDL." : `Stats de ${displayName}.`}
               </h1>
               <p className="mt-4 text-base leading-7 text-slate-300 sm:mt-5 sm:text-lg sm:leading-8">
-                Suis tes records, ton volume de jeu et tes performances par mode.
+                {isOwnProfile
+                  ? "Suis tes records, ton volume de jeu et tes performances par mode."
+                  : "Consulte ses records, son volume de jeu et ses performances par mode."}
               </p>
             </div>
 
@@ -125,7 +157,7 @@ export function ProfileScreen() {
           </div>
         </header>
 
-        <GoogleAuthCard />
+        {isOwnProfile || !profileUserId ? <GoogleAuthCard /> : null}
 
         <section className="grid gap-4 lg:grid-cols-2">
           <article className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
@@ -153,7 +185,7 @@ export function ProfileScreen() {
           </p>
         ) : null}
 
-        {!authState.userProfile && authState.isAuthReady ? (
+        {!profileUserId && !authState.userProfile && authState.isAuthReady ? (
           <section className="rounded-[1.5rem] border border-amber-300/15 bg-amber-300/5 p-5 sm:rounded-[2rem] sm:p-8">
             <h2 className="text-2xl font-black tracking-[-0.04em] text-white sm:text-3xl">
               Connecte-toi pour voir tes stats sauvegardees.
@@ -220,10 +252,10 @@ export function ProfileScreen() {
                 </div>
 
                 <div className="mt-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 sm:mt-6 sm:text-xs">
-                  {authState.userProfile?.photoUrl ? (
+                  {photoUrl ? (
                     <Image
-                      src={authState.userProfile.photoUrl}
-                      alt={`Avatar de ${authState.userProfile.displayName}`}
+                      src={photoUrl}
+                      alt={`Avatar de ${displayName}`}
                       width={28}
                       height={28}
                       className="rounded-full"

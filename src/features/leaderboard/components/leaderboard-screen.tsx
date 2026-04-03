@@ -132,8 +132,7 @@ export function LeaderboardScreen() {
                 Leaderboards par mode.
               </h1>
               <p className="mt-4 text-base leading-7 text-slate-300 sm:mt-5 sm:text-lg sm:leading-8">
-                Choisis un mode, regarde le podium, ta position et le top 20
-                synchronise Firestore.
+                Choisis un mode, regarde le podium, ta position et le top 20.
               </p>
             </div>
 
@@ -282,31 +281,33 @@ export function LeaderboardScreen() {
                       rank,
                     )}`}
                   >
-                    <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">
-                      {renderRankLabel(rank)}
-                    </p>
-                    <div className="mx-auto mt-4 h-16 w-16 overflow-hidden rounded-full bg-slate-900">
-                      {entry.photoUrl ? (
-                        <Image
-                          src={entry.photoUrl}
-                          alt={`Avatar de ${entry.displayName}`}
-                          width={64}
-                          height={64}
-                          className="h-full w-full rounded-full object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-lg font-black text-white">
-                          {entry.displayName.slice(0, 1)}
-                        </div>
-                      )}
-                    </div>
-                    <p className="mt-4 truncate text-sm font-bold text-white">
-                      {entry.displayName}
-                    </p>
-                    <p className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">
-                      {entry.bestScore}
-                    </p>
+                    <Link href={`/profile/${entry.uid}`} className="block">
+                      <p className="text-xs font-black uppercase tracking-[0.3em] text-emerald-300">
+                        {renderRankLabel(rank)}
+                      </p>
+                      <div className="mx-auto mt-4 h-16 w-16 overflow-hidden rounded-full bg-slate-900">
+                        {entry.photoUrl ? (
+                          <Image
+                            src={entry.photoUrl}
+                            alt={`Avatar de ${entry.displayName}`}
+                            width={64}
+                            height={64}
+                            className="h-full w-full rounded-full object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-lg font-black text-white">
+                            {entry.displayName.slice(0, 1)}
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-4 truncate text-sm font-bold text-white">
+                        {entry.displayName}
+                      </p>
+                      <p className="mt-2 text-3xl font-black tracking-[-0.05em] text-white">
+                        {entry.bestScore}
+                      </p>
+                    </Link>
                   </div>
                 );
               })}
@@ -329,8 +330,9 @@ export function LeaderboardScreen() {
                 const isCurrentUser = entry.uid === authState.userProfile?.uid;
 
                 return (
-                  <div
+                  <Link
                     key={`${selectedModeId}-${entry.uid}`}
+                    href={`/profile/${entry.uid}`}
                     className={`flex items-center justify-between gap-4 rounded-3xl px-5 py-4 ${
                       isCurrentUser
                         ? "bg-emerald-400/10 ring-1 ring-emerald-300/20"
@@ -370,7 +372,7 @@ export function LeaderboardScreen() {
                     <p className="text-2xl font-black tracking-[-0.04em] text-white">
                       {entry.bestScore}
                     </p>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
