@@ -2,11 +2,15 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { notFound } from "next/navigation";
 
-const IMAGE_CONTENT_TYPES: Record<string, string> = {
+const ASSET_CONTENT_TYPES: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
+  ".m4a": "audio/mp4",
+  ".mp3": "audio/mpeg",
+  ".ogg": "audio/ogg",
   ".png": "image/png",
   ".svg": "image/svg+xml",
+  ".wav": "audio/wav",
   ".webp": "image/webp",
 };
 
@@ -51,7 +55,7 @@ export async function GET(
   const { assetPath } = await context.params;
   const resolvedAssetPath = await resolveAssetPath(assetPath);
   const fileExtension = path.extname(resolvedAssetPath).toLowerCase();
-  const contentType = IMAGE_CONTENT_TYPES[fileExtension];
+  const contentType = ASSET_CONTENT_TYPES[fileExtension];
 
   if (!contentType) {
     notFound();
