@@ -23,6 +23,13 @@ import type {
 } from "@/src/types";
 
 const LEADERBOARD_LIMIT = 20;
+const GAME_MODE_IDS: GameModeId[] = [
+  "guess-player",
+  "age-duel",
+  "title-duel",
+  "rating-duel",
+  "role-sort",
+];
 
 function createModeDocumentId(uid: string, modeId: GameModeId): string {
   return `${uid}_${modeId}`;
@@ -58,6 +65,22 @@ export class FirestoreScoreRepository
     );
 
     return bestScoreDocument?.bestScore ?? 0;
+  }
+
+  async getUserGameStats(uid: string): Promise<UserGameStatsDocument[]> {
+    const db = getFirebaseDbOrThrow();
+    const statsDocuments = await Promise.all(
+      GAME_MODE_IDS.map((modeId) =>
+        readDocument<UserGameStatsDocument>(
+          doc(db, "userGameStats", createModeDocumentId(uid, modeId)),
+        ),
+      ),
+    );
+
+    return statsDocuments.filter(
+      (statsDocument): statsDocument is UserGameStatsDocument =>
+        statsDocument !== null,
+    );
   }
 
   async getLeaderboard(modeId: GameModeId): Promise<LeaderboardDocument | null> {

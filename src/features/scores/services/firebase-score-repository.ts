@@ -3,10 +3,12 @@ import type {
   GameModeId,
   GameSessionDocument,
   LeaderboardDocument,
+  UserGameStatsDocument,
 } from "@/src/types";
 
 export interface FirebaseScoreRepository {
   getUserBestScore(uid: string, modeId: GameModeId): Promise<number>;
+  getUserGameStats(uid: string): Promise<UserGameStatsDocument[]>;
   getLeaderboard(modeId: GameModeId): Promise<LeaderboardDocument | null>;
   saveGameSession(session: GameSessionDocument): Promise<void>;
   saveUserBestScore(

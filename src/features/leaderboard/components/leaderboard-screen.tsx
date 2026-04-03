@@ -84,10 +84,10 @@ export function LeaderboardScreen() {
             </div>
 
             <Link
-              href="/modes"
+              href="/profile"
               className="inline-flex w-fit items-center justify-center rounded-full border border-white/15 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-white/30 hover:bg-white/5"
             >
-              Retour modes
+              Mon profil
             </Link>
           </div>
 
