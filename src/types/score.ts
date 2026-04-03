@@ -3,7 +3,8 @@ export type GameModeId =
   | "age-duel"
   | "title-duel"
   | "rating-duel"
-  | "role-sort";
+  | "role-sort"
+  | "title-rank";
 
 export type ModeBestScores = Record<GameModeId, number>;
 

@@ -7,6 +7,7 @@ import { GameModeNavigation } from "@/src/features/game/components/game-mode-nav
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import {
+  getTitleDuelRoundLabel,
   startTitleDuelGame,
   submitTitleDuelAnswer,
 } from "@/src/features/game/utils/title-duel-game";
@@ -150,6 +151,9 @@ export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
           <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
             Qui a le plus de titres ?
           </h1>
+          <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">
+            {getTitleDuelRoundLabel(gameState.score)}
+          </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
             <button
               type="button"

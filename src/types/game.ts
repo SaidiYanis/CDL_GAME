@@ -57,3 +57,19 @@ export interface RoleSortGameState {
   score: number;
   status: GameStatus;
 }
+
+export type TitleRankAnswer = "higher" | "same" | "lower";
+
+export interface TitleRankGameQuestion {
+  comparisonMode: "major" | "cumulative";
+  playerIds: string[];
+  targetTitleCount: number;
+}
+
+export interface TitleRankGameState {
+  bestScore: number;
+  currentQuestion: TitleRankGameQuestion | null;
+  lastCorrectAnswer: string | null;
+  score: number;
+  status: GameStatus;
+}

@@ -7,6 +7,7 @@ const DEFAULT_BEST_SCORES: ModeBestScores = {
   "guess-player": 0,
   "rating-duel": 0,
   "role-sort": 0,
+  "title-rank": 0,
   "title-duel": 0,
 };
 
@@ -29,6 +30,7 @@ function getStoredScores(): ModeBestScores {
       "guess-player": Number(parsedValue["guess-player"]) || 0,
       "rating-duel": Number(parsedValue["rating-duel"]) || 0,
       "role-sort": Number(parsedValue["role-sort"]) || 0,
+      "title-rank": Number(parsedValue["title-rank"]) || 0,
       "title-duel": Number(parsedValue["title-duel"]) || 0,
     };
   } catch {

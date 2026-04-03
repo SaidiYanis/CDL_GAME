@@ -33,7 +33,7 @@ export const GAME_MODES: GameModeCard[] = [
     title: "Qui a le plus de titres",
     label: "Jouable",
     description:
-      "Choisis quel joueur a le plus gros palmares, ou same en cas d'egalite.",
+      "Compare les Major, avec un round bonus Major + World tous les 3 points. Choisis un joueur ou Same en cas d'egalite.",
     href: "/game/title-duel",
     isAvailable: true,
   },
@@ -53,6 +53,15 @@ export const GAME_MODES: GameModeCard[] = [
     description:
       "Trie un pool de joueurs entre AR et SMG et valide ton classement sans te tromper.",
     href: "/game/role-sort",
+    isAvailable: true,
+  },
+  {
+    id: "title-rank",
+    title: "Plus / egal / moins",
+    label: "Jouable",
+    description:
+      "Compare 5 joueurs a une cible de titres. Major only la plupart du temps, puis Major + World tous les 3 rounds.",
+    href: "/game/title-rank",
     isAvailable: true,
   },
 ];

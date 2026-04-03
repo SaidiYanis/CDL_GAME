@@ -1,0 +1,320 @@
+"use client";
+
+import Image from "next/image";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CountryFlagLabel } from "@/src/features/common/components/country-flag-label";
+import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
+import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
+import { GameOverCard } from "@/src/features/game/components/game-over-card";
+import { ScoreDisplay } from "@/src/features/game/components/score-display";
+import {
+  createEmptyTitleRankAssignments,
+  getTitleRankRoundLabel,
+  startTitleRankGame,
+  submitTitleRankRound,
+  type TitleRankAssignments,
+} from "@/src/features/game/utils/title-rank-game";
+import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
+import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
+import { localScoreRepository } from "@/src/lib/data/local-score-repository";
+import type {
+  Player,
+  Team,
+  TitleRankAnswer,
+  TitleRankGameState,
+} from "@/src/types";
+
+const TITLE_RANK_CHOICES: Array<{
+  label: string;
+  value: TitleRankAnswer;
+}> = [
+  { label: "+", value: "higher" },
+  { label: "=", value: "same" },
+  { label: "-", value: "lower" },
+];
+
+interface TitleRankScreenProps {
+  players: Player[];
+  teams: Team[];
+}
+
+interface TitleRankSession {
+  assignments: TitleRankAssignments;
+  gameState: TitleRankGameState;
+}
+
+function getPlayerCardBorderColor(
+  selectedAnswer: TitleRankAnswer | null,
+  isGameOver: boolean,
+): string {
+  if (!isGameOver) {
+    return selectedAnswer ? "border-emerald-300/40" : "border-white/10";
+  }
+
+  return selectedAnswer ? "border-white/10" : "border-rose-300/50";
+}
+
+export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
+  const hasLoadedLocalBestScoreRef = useRef(false);
+  const [{ assignments, gameState }, setSession] = useState<TitleRankSession>(
+    () => ({
+      assignments: {},
+      gameState: {
+        bestScore: 0,
+        currentQuestion: null,
+        lastCorrectAnswer: null,
+        score: 0,
+        status: "idle",
+      },
+    }),
+  );
+  const playersById = useMemo(
+    () => new Map(players.map((player) => [player.id, player])),
+    [players],
+  );
+  const teamsByTag = useMemo(
+    () => new Map(teams.map((team) => [team.tag, team])),
+    [teams],
+  );
+  const roundPlayers = useMemo(
+    () =>
+      gameState.currentQuestion?.playerIds
+        .map((playerId) => playersById.get(playerId))
+        .filter((player): player is Player => player !== undefined) ?? [],
+    [gameState.currentQuestion?.playerIds, playersById],
+  );
+  const allPlayersAnswered =
+    roundPlayers.length > 0 &&
+    roundPlayers.every((player) => assignments[player.id] !== null);
+  const isGameOver = gameState.status === "lost";
+
+  const { syncCurrentRunLoss } = useGameScoreSync({
+    bestScore: gameState.bestScore,
+    modeId: "title-rank",
+    score: gameState.score,
+    status: gameState.status,
+  });
+
+  useEffect(() => {
+    if (hasLoadedLocalBestScoreRef.current) {
+      return;
+    }
+
+    hasLoadedLocalBestScoreRef.current = true;
+    queueMicrotask(() => {
+      setSession((currentSession) => {
+        if (
+          currentSession.gameState.score !== 0 ||
+          currentSession.gameState.status !== "idle"
+        ) {
+          return currentSession;
+        }
+
+        const nextGameState = startTitleRankGame(
+          players,
+          localScoreRepository.getBestScore("title-rank"),
+        );
+
+        return {
+          assignments: createEmptyTitleRankAssignments(
+            nextGameState.currentQuestion,
+          ),
+          gameState: nextGameState,
+        };
+      });
+    });
+  }, [players]);
+
+  const handleSelectAnswer = useCallback(
+    (playerId: string, answer: TitleRankAnswer) => {
+      setSession((currentSession) => ({
+        ...currentSession,
+        assignments: {
+          ...currentSession.assignments,
+          [playerId]: answer,
+        },
+      }));
+    },
+    [],
+  );
+
+  const handleSubmitRound = useCallback(() => {
+    const nextGameState = submitTitleRankRound(gameState, players, assignments);
+
+    playGameFeedbackSound(nextGameState.status === "lost" ? "lose" : "win");
+
+    setSession({
+      assignments: createEmptyTitleRankAssignments(
+        nextGameState.currentQuestion,
+      ),
+      gameState: nextGameState,
+    });
+  }, [assignments, gameState, players]);
+
+  const handleRestartGame = useCallback(() => {
+    setSession((currentSession) => {
+      const nextGameState = startTitleRankGame(
+        players,
+        currentSession.gameState.bestScore,
+      );
+
+      return {
+        assignments: createEmptyTitleRankAssignments(
+          nextGameState.currentQuestion,
+        ),
+        gameState: nextGameState,
+      };
+    });
+  }, [players]);
+
+  if (players.length < 5) {
+    return (
+      <GameDataFallback
+        description="Ce mode requiert au moins 5 joueurs avec des donnees de titres."
+        title="Pas assez de joueurs pour lancer ce mode."
+      />
+    );
+  }
+
+  if (
+    gameState.status === "idle" ||
+    !gameState.currentQuestion ||
+    roundPlayers.length === 0
+  ) {
+    return (
+      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+        <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+          <GameModeNavigation shouldConfirmNavigation={false} />
+          <ScoreDisplay bestScore={0} score={0} />
+          <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+              Rank titres
+            </p>
+            <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+              Preparation du round...
+            </h1>
+          </section>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+        <GameModeNavigation
+          onNavigateBack={syncCurrentRunLoss}
+          shouldConfirmNavigation={!isGameOver}
+        />
+        <ScoreDisplay bestScore={gameState.bestScore} score={gameState.score} />
+
+        <section className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
+            Plus / egal / moins
+          </p>
+          <h1 className="mt-5 text-5xl font-black tracking-[-0.04em] text-white">
+            Compare 5 joueurs a {gameState.currentQuestion.targetTitleCount}{" "}
+            titres.
+          </h1>
+          <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">
+            {getTitleRankRoundLabel(gameState.currentQuestion)}
+          </p>
+          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-300">
+            Pour chaque joueur, choisis + s&apos;il a plus de titres que la
+            cible, = s&apos;il est exactement au meme total, ou - s&apos;il en a
+            moins. Une seule erreur termine la run.
+          </p>
+
+          <button
+            type="button"
+            disabled={!allPlayersAnswered || isGameOver}
+            onClick={handleSubmitRound}
+            className="mt-8 inline-flex items-center justify-center rounded-full bg-emerald-400 px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-slate-950 transition-colors hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Valider les 5 choix
+          </button>
+        </section>
+
+        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+          {roundPlayers.map((player) => {
+            const team = teamsByTag.get(player.teamTag) ?? null;
+            const selectedAnswer = assignments[player.id] ?? null;
+
+            return (
+              <article
+                key={player.id}
+                className={`rounded-[2rem] border bg-white/5 p-4 ${getPlayerCardBorderColor(
+                  selectedAnswer,
+                  isGameOver,
+                )}`}
+              >
+                <div className="relative aspect-square overflow-hidden rounded-[1.5rem] bg-slate-900">
+                  <Image
+                    src={player.imageUrl}
+                    alt={`Portrait de ${player.name}`}
+                    fill
+                    sizes="(max-width: 768px) 50vw, 240px"
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+
+                <div className="mt-4 flex items-center gap-3">
+                  {team?.logoUrl ? (
+                    <div className="relative h-10 w-10 overflow-hidden rounded-xl bg-white/5">
+                      <Image
+                        src={team.logoUrl}
+                        alt={`Logo ${team.name}`}
+                        fill
+                        sizes="40px"
+                        className="object-contain p-1.5"
+                        unoptimized
+                      />
+                    </div>
+                  ) : null}
+
+                  <div className="min-w-0">
+                    <h2 className="truncate text-lg font-black tracking-[-0.04em] text-white">
+                      {player.name}
+                    </h2>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                      {team?.tag ?? player.teamTag} /{" "}
+                      <CountryFlagLabel country={player.country} />
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {TITLE_RANK_CHOICES.map((choice) => (
+                    <button
+                      key={`${player.id}-${choice.value}`}
+                      type="button"
+                      disabled={isGameOver}
+                      onClick={() => handleSelectAnswer(player.id, choice.value)}
+                      className={`rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-[0.2em] transition-colors disabled:cursor-not-allowed ${
+                        selectedAnswer === choice.value
+                          ? "bg-emerald-400 text-slate-950"
+                          : "bg-slate-900/70 text-white hover:bg-white/10"
+                      }`}
+                    >
+                      {choice.label}
+                    </button>
+                  ))}
+                </div>
+              </article>
+            );
+          })}
+        </section>
+
+        {isGameOver ? (
+          <GameOverCard
+            bestScore={gameState.bestScore}
+            correctAnswer={gameState.lastCorrectAnswer}
+            onRestartGame={handleRestartGame}
+            score={gameState.score}
+          />
+        ) : null}
+      </section>
+    </main>
+  );
+}

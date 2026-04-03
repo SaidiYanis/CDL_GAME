@@ -10,6 +10,7 @@ const GAME_MODE_IDS: GameModeId[] = [
   "title-duel",
   "rating-duel",
   "role-sort",
+  "title-rank",
 ];
 
 function normalizeBirthDate(birthDate: string): string | null {

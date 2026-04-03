@@ -1,17 +1,39 @@
 import { pickUniqueRandomItems } from "@/src/lib/utils/random";
 import type { DuelAnswer, DuelGameQuestion, DuelGameState, Player } from "@/src/types";
 
+export function isCumulativeTitleRound(score: number): boolean {
+  return (score + 1) % 3 === 0;
+}
+
+export function getTitleDuelRoundLabel(score: number): string {
+  return isCumulativeTitleRound(score)
+    ? "Round bonus : compare Major + World cumules."
+    : "Compare les Major uniquement.";
+}
+
 function getTotalTitles(player: Player): number {
   return (player.worldTitleCount ?? 0) + (player.majorTitleCount ?? 0);
+}
+
+function getComparedTitleCount(player: Player, score: number): number {
+  if (isCumulativeTitleRound(score)) {
+    return getTotalTitles(player);
+  }
+
+  return player.majorTitleCount ?? 0;
 }
 
 function getPairKey(leftPlayerId: string, rightPlayerId: string): string {
   return [leftPlayerId, rightPlayerId].sort().join("__");
 }
 
-function resolveTitleAnswer(leftPlayer: Player, rightPlayer: Player): DuelAnswer {
-  const leftTitles = getTotalTitles(leftPlayer);
-  const rightTitles = getTotalTitles(rightPlayer);
+function resolveTitleAnswer(
+  leftPlayer: Player,
+  rightPlayer: Player,
+  score: number,
+): DuelAnswer {
+  const leftTitles = getComparedTitleCount(leftPlayer, score);
+  const rightTitles = getComparedTitleCount(rightPlayer, score);
 
   if (leftTitles === rightTitles) {
     return "same";
@@ -135,6 +157,7 @@ export function createNextTitleDuelQuestion(
     correctAnswer: resolveTitleAnswer(
       selectedPair.leftPlayer,
       selectedPair.rightPlayer,
+      state.score,
     ),
     leftPlayerId: selectedPair.leftPlayer.id,
     prompt: "Qui a le plus de titres",

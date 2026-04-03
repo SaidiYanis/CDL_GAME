@@ -29,6 +29,7 @@ const GAME_MODE_IDS: GameModeId[] = [
   "title-duel",
   "rating-duel",
   "role-sort",
+  "title-rank",
 ];
 
 function createModeDocumentId(uid: string, modeId: GameModeId): string {

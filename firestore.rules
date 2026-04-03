@@ -18,6 +18,7 @@ service cloud.firestore {
           || documentId == request.auth.uid + "_title-duel"
           || documentId == request.auth.uid + "_rating-duel"
           || documentId == request.auth.uid + "_role-sort"
+          || documentId == request.auth.uid + "_title-rank"
         );
     }
 
@@ -26,7 +27,8 @@ service cloud.firestore {
         || modeId == "age-duel"
         || modeId == "title-duel"
         || modeId == "rating-duel"
-        || modeId == "role-sort";
+        || modeId == "role-sort"
+        || modeId == "title-rank";
     }
 
     function isNonNegativeNumber(value) {

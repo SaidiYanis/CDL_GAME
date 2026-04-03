@@ -18,10 +18,16 @@ import {
   submitSurvivalAnswer,
 } from "@/src/features/game/utils/survival-game";
 import {
+  createNextTitleDuelQuestion,
   startTitleDuelGame,
   submitTitleDuelAnswer,
 } from "@/src/features/game/utils/title-duel-game";
-import type { Player, PlayerRole } from "@/src/types";
+import {
+  createEmptyTitleRankAssignments,
+  startTitleRankGame,
+  submitTitleRankRound,
+} from "@/src/features/game/utils/title-rank-game";
+import type { Player, PlayerRole, TitleRankAnswer } from "@/src/types";
 
 const originalMathRandom = Math.random;
 
@@ -144,7 +150,7 @@ test("title duel resolves same when both players have identical title counts", (
     }),
     createPlayer({
       id: "beta",
-      majorTitleCount: 2,
+      majorTitleCount: 1,
       name: "Beta",
       slug: "beta",
       worldTitleCount: 0,
@@ -158,6 +164,59 @@ test("title duel resolves same when both players have identical title counts", (
     submitTitleDuelAnswer(initialState, players, "same").score,
     1,
   );
+});
+
+test("title duel compares major titles only on regular rounds", () => {
+  const players = [
+    createPlayer({
+      id: "major-lead",
+      majorTitleCount: 2,
+      name: "Major Lead",
+      slug: "major-lead",
+      worldTitleCount: 0,
+    }),
+    createPlayer({
+      id: "world-heavy",
+      majorTitleCount: 1,
+      name: "World Heavy",
+      slug: "world-heavy",
+      worldTitleCount: 3,
+    }),
+  ];
+
+  const initialState = startTitleDuelGame(players, 0);
+
+  assert.equal(initialState.currentQuestion?.correctAnswer, "left");
+});
+
+test("title duel compares major plus world titles every third round", () => {
+  const players = [
+    createPlayer({
+      id: "major-lead",
+      majorTitleCount: 2,
+      name: "Major Lead",
+      slug: "major-lead",
+      worldTitleCount: 0,
+    }),
+    createPlayer({
+      id: "world-heavy",
+      majorTitleCount: 1,
+      name: "World Heavy",
+      slug: "world-heavy",
+      worldTitleCount: 3,
+    }),
+  ];
+
+  const thirdRoundQuestion = createNextTitleDuelQuestion(players, {
+    bestScore: 0,
+    currentQuestion: null,
+    lastCorrectAnswer: null,
+    score: 2,
+    status: "playing",
+    usedPairKeys: [],
+  });
+
+  assert.equal(thirdRoundQuestion?.correctAnswer, "right");
 });
 
 test("rating duel selects the higher rated player and loses on a wrong answer", () => {
@@ -207,4 +266,38 @@ test("role sort validates a full AR/SMG round and returns an error summary on wr
 
   assert.equal(failedState.status, "lost");
   assert.ok(failedState.lastCorrectAnswer?.includes("Role Player"));
+});
+
+test("title rank validates a full 5-player round and increments score", () => {
+  const players = Array.from({ length: 5 }, (_, index) =>
+    createPlayer({
+      id: `title-rank-${index}`,
+      majorTitleCount: 0,
+      name: `Title Rank ${index}`,
+      slug: `title-rank-${index}`,
+      worldTitleCount: 0,
+    }),
+  );
+  const initialState = startTitleRankGame(players, 0);
+
+  assert.equal(initialState.status, "playing");
+  assert.equal(initialState.currentQuestion?.playerIds.length, 5);
+  assert.equal(initialState.currentQuestion?.targetTitleCount, 0);
+
+  const assignments = Object.fromEntries(
+    (initialState.currentQuestion?.playerIds ?? []).map((playerId) => [
+      playerId,
+      "same" satisfies TitleRankAnswer,
+    ]),
+  );
+  const nextState = submitTitleRankRound(initialState, players, assignments);
+
+  assert.equal(nextState.score, 1);
+  assert.equal(nextState.lastCorrectAnswer, "Round parfait");
+  assert.equal(
+    Object.keys(
+      createEmptyTitleRankAssignments(nextState.currentQuestion),
+    ).length,
+    nextState.currentQuestion?.playerIds.length ?? 0,
+  );
 });

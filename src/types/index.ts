@@ -9,6 +9,9 @@ export type {
   GameStatus,
   RoleSortGameQuestion,
   RoleSortGameState,
+  TitleRankAnswer,
+  TitleRankGameQuestion,
+  TitleRankGameState,
 } from "@/src/types/game";
 export type {
   LocalCdlPlayerRecord,
