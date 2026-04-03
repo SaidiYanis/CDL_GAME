@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DuelPlayerCard } from "@/src/features/game/components/duel-player-card";
+import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import {
@@ -77,16 +78,10 @@ export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
 
   if (!gameState.currentQuestion || !leftPlayer || !rightPlayer) {
     return (
-      <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-        <section className="mx-auto max-w-3xl rounded-[2rem] border border-white/10 bg-white/5 p-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-rose-300">
-            Donnees indisponibles
-          </p>
-          <h1 className="mt-5 text-4xl font-black tracking-[-0.04em]">
-            Pas assez de joueurs pour lancer ce duel.
-          </h1>
-        </section>
-      </main>
+      <GameDataFallback
+        description="Ce mode requiert au moins deux joueurs valides dans la source locale."
+        title="Pas assez de joueurs pour lancer ce duel."
+      />
     );
   }
 

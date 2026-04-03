@@ -1,5 +1,6 @@
 import rawCdlData from "@/src/lib/data/cdl-data.json";
 import type { PlayerRepository } from "@/src/features/players/services/player-repository";
+import { validateLocalCdlDataSet } from "@/src/lib/data/local-cdl-data-validation";
 import { slugify } from "@/src/lib/utils/slugify";
 import type {
   LocalCdlDataSet,
@@ -45,12 +46,23 @@ function mapTeamRecord(teamRecord: LocalCdlTeamRecord): Team {
 }
 
 export class LocalPlayerRepository implements PlayerRepository {
+  private readonly issues: string[];
   private readonly teams: Team[];
   private readonly players: Player[];
 
   constructor(dataSet: LocalCdlDataSet = localCdlData) {
-    this.teams = dataSet.teams.map(mapTeamRecord);
+    const validationResult = validateLocalCdlDataSet(dataSet);
+
+    this.issues = validationResult.issues;
+    this.teams = validationResult.teams.map(mapTeamRecord);
     this.players = this.teams.flatMap((team) => team.players);
+
+    if (this.issues.length > 0) {
+      console.warn(
+        `[LocalPlayerRepository] ${this.issues.length} probleme(s) detecte(s):`,
+        this.issues,
+      );
+    }
   }
 
   async getPlayers(): Promise<Player[]> {
@@ -67,6 +79,10 @@ export class LocalPlayerRepository implements PlayerRepository {
 
   async getTeamByTag(teamTag: string): Promise<Team | null> {
     return this.teams.find((team) => team.tag === teamTag) ?? null;
+  }
+
+  async getValidationIssues(): Promise<string[]> {
+    return this.issues;
   }
 }
 
