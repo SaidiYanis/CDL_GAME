@@ -1,9 +1,9 @@
 import { GameScreen } from "@/src/features/game/components/game-screen";
-import { localPlayerRepository } from "@/src/lib/data/local-player-repository";
+import { playerRepository } from "@/src/lib/data/player-repository-provider";
 
 export default async function GamePage() {
-  const players = await localPlayerRepository.getPlayers();
-  const teams = await localPlayerRepository.getTeams();
+  const players = await playerRepository.getPlayers();
+  const teams = await playerRepository.getTeams();
 
   return <GameScreen players={players} teams={teams} />;
 }
