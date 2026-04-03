@@ -12,6 +12,7 @@ export interface Team {
 export interface LocalCdlTeamRecord {
   name: string;
   tag: string;
+  img: string;
   players: LocalCdlPlayerRecord[];
 }
 

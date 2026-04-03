@@ -9,6 +9,7 @@ export interface Player {
   country: string | null;
   worldTitleCount: number | null;
   majorTitleCount: number | null;
+  rating: number | null;
   teamTag: string;
   imageUrl: string;
 }
@@ -22,4 +23,5 @@ export interface LocalCdlPlayerRecord {
   major_title: number | null;
   team: string;
   img: string;
+  note: number | null;
 }

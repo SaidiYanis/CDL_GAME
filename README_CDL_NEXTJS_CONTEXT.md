@@ -545,3 +545,167 @@ Le projet doit être pensé comme un **MVP propre** :
 6. migration future vers Firebase sans refonte globale.
 
 Le but n'est pas juste de faire « quelque chose qui marche », mais de poser une base sérieuse pour un vrai projet évolutif.
+---
+
+## 21. Etat actuel du projet
+
+### Ce qui est deja en place
+
+- une branche `main` stable ;
+- une branche `dev` pour continuer les US une par une ;
+- un ecran d'accueil ;
+- une page `/game` jouable ;
+- le mode principal "deviner le joueur" en survie ;
+- le score, le record local, le game over et le replay ;
+- une difficulte progressive ;
+- une couche `PlayerRepository` ;
+- une implementation locale `LocalPlayerRepository` basee sur `src/lib/data/cdl-data.json`.
+
+### Donnees locales enrichies
+
+Le fichier `src/lib/data/cdl-data.json` contient maintenant :
+
+- le nom et le tag de chaque equipe ;
+- l'image/logo de chaque equipe via `team.img` ;
+- pour chaque joueur :
+  - `name`
+  - `role`
+  - `birthDate`
+  - `country`
+  - `world_title`
+  - `major_title`
+  - `note`
+  - `team`
+  - `img`
+
+### Points techniques a corriger / surveiller
+
+- mapper `team.img` vers `Team.logoUrl` dans le repository local ;
+- exploiter `role`, `country`, `birthDate`, `world_title`, `major_title`, `note` dans l'UI et les futurs modes ;
+- commiter proprement les nouveaux assets `ressource/*` si on veut que le projet soit rejouable apres clone ;
+- traiter plus tard le warning Turbopack lie au route handler `/ressource/[...assetPath]` ;
+- corriger l'encodage de ce README si necessaire.
+
+---
+
+## 22. Nouveaux modes de jeu a ajouter
+
+### Mode 1 - Deviner le joueur
+
+- un joueur est affiche ;
+- il faut trouver son pseudo ;
+- une erreur termine la partie.
+
+### Mode 2 - Plus jeune ou plus vieux
+
+- deux joueurs sont affiches ;
+- le jeu demande "Qui est le plus jeune ?" ou "Qui est le plus vieux ?" ;
+- si la reponse est bonne, le score augmente ;
+- a la premiere erreur, la partie s'arrete ;
+- il faut gerer les `birthDate` inconnues et le cas ou les deux joueurs ont la meme date.
+
+### Mode 3 - Plus de titres ou egalite
+
+- deux joueurs sont affiches ;
+- le joueur choisit qui a le plus de titres, ou "same" en cas d'egalite ;
+- une erreur termine la partie ;
+- il faut definir si la comparaison porte sur `world_title`, `major_title`, ou un total.
+
+### Mode 4 - Meilleure note BP
+
+- deux joueurs sont affiches ;
+- l'utilisateur choisit lequel a la meilleure `note`, ou "same" si egalite ;
+- une erreur termine la partie ;
+- il faut definir si la comparaison accepte seulement les notes strictement superieures ou une egalite explicite.
+
+### Mode 5 - Trier 10 joueurs par role AR / SMG
+
+- 10 joueurs aleatoires sont affiches ;
+- l'utilisateur doit les classer en `AR` ou `SMG` ;
+- le round est gagne si le tri est correct ;
+- une mauvaise validation termine la partie ;
+- il faut definir si la validation est joueur par joueur ou par lot de 10.
+
+---
+
+## 23. Meilleure demarche pour la suite
+
+### Phase A - Consolider le MVP local
+
+- afficher le logo d'equipe et quelques infos joueur utiles dans le mode actuel ;
+- mapper `team.img` dans `Team.logoUrl` ;
+- ajouter une validation/coherence de `cdl-data.json` ;
+- commiter les nouveaux assets `ressource/*` necessaires au jeu ;
+- ajouter un ecran de selection de mode.
+
+### Phase B - Ajouter les nouveaux modes un par un
+
+Ordre conseille :
+
+1. mode "plus jeune / plus vieux" ;
+2. mode "plus de titres / same" ;
+3. mode "meilleure note BP / same" ;
+4. mode "tri AR / SMG".
+
+Pourquoi :
+
+- le mode age est le plus simple apres le mode principal ;
+- le mode titres est proche mais demande une regle de comparaison claire ;
+- le mode note BP reutilise le meme pattern de duel avec un critere plus simple que les titres ;
+- le mode tri AR/SMG demande une UI plus complexe.
+
+### Phase C - Brancher Firebase
+
+- definir un schema Firestore pour `teams` et `players` ;
+- creer `FirebasePlayerRepository` en gardant la meme interface que `PlayerRepository` ;
+- garder `LocalPlayerRepository` pour le dev/offline ;
+- ajouter une config d'environnement pour choisir la source de donnees ;
+- migrer les images vers Firebase Storage une fois les conventions de noms stabilisees.
+
+### Phase D - Ajouter Google Auth, sauvegarde des scores et ranking global
+
+- definir un `ScoreRepository` / `LeaderboardRepository` ;
+- garder les meilleurs scores en local tant que l'utilisateur n'est pas connecte ;
+- ajouter la connexion Google via Firebase Auth ;
+- sauvegarder les records par joueur et par mode dans Firestore ;
+- afficher un ranking global par mode ;
+- n'enregistrer en base que si le nouveau score est meilleur que l'ancien record du joueur sur ce mode.
+
+---
+
+## 24. Backlog d'US recommande apres le MVP
+
+### US deja realisees
+
+- US1 - creer l'ecran d'accueil et la base UI ;
+- US2 - creer les types metier et integrer le JSON local ;
+- US3 - creer le repository local ;
+- US4 - creer la logique de survie ;
+- US5 - brancher une UI jouable pour le mode "deviner le joueur".
+
+### US a faire maintenant
+
+- US6 - afficher les infos joueur/equipe dans le mode actuel et mapper `team.img` vers `Team.logoUrl` ;
+- US7 - ajouter un ecran de selection de mode ;
+- US8 - ajouter le mode "plus jeune / plus vieux" ;
+- US9 - ajouter le mode "plus de titres / same" ;
+- US10 - ajouter le mode "meilleure note BP / same" ;
+- US11 - ajouter le mode "tri AR / SMG" ;
+- US12 - ajouter une validation des donnees locales et une UI de fallback si une image/stat est invalide ;
+- US13 - ajouter un systeme de scores/records par mode cote local ;
+- US14 - creer le schema Firebase `teams`, `players`, `scores`, `leaderboards` ;
+- US15 - creer `FirebasePlayerRepository` ;
+- US16 - creer `ScoreRepository` et une implementation Firestore ;
+- US17 - ajouter la connexion Google ;
+- US18 - sauvegarder les records utilisateurs par mode ;
+- US19 - afficher un ranking global par mode ;
+- US20 - ajouter des tests sur la logique de tous les modes ;
+- US21 - nettoyer les assets, les chemins d'images, et le warning Turbopack.
+
+### Regle de travail Git
+
+- developper sur `dev` ;
+- une US terminee = un commit clair ;
+- `lint` et `build` doivent passer avant push ;
+- push sur `origin/dev` a chaque US terminee ;
+- remonter `dev` vers `main` uniquement quand un ensemble stable est valide.

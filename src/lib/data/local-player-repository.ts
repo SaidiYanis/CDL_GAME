@@ -27,6 +27,7 @@ function mapPlayerRecord(playerRecord: LocalCdlPlayerRecord): Player {
     country: playerRecord.country,
     worldTitleCount: playerRecord.world_title,
     majorTitleCount: playerRecord.major_title,
+    rating: playerRecord.note,
     teamTag: playerRecord.team,
     imageUrl: playerRecord.img,
   };
@@ -38,7 +39,7 @@ function mapTeamRecord(teamRecord: LocalCdlTeamRecord): Team {
     name: teamRecord.name,
     slug: slugify(teamRecord.name),
     tag: teamRecord.tag,
-    logoUrl: null,
+    logoUrl: teamRecord.img,
     players: teamRecord.players.map(mapPlayerRecord),
   };
 }

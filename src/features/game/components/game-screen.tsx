@@ -1,18 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { startSurvivalGame, submitSurvivalAnswer } from "@/src/features/game/utils/survival-game";
-import type { GameState, Player } from "@/src/types";
+import { useEffect, useMemo, useState } from "react";
 import { AnswerInput } from "@/src/features/game/components/answer-input";
 import { AnswerOptions } from "@/src/features/game/components/answer-options";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { PlayerCard } from "@/src/features/game/components/player-card";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
+import {
+  startSurvivalGame,
+  submitSurvivalAnswer,
+} from "@/src/features/game/utils/survival-game";
+import type { GameState, Player, Team } from "@/src/types";
 
 const BEST_SCORE_STORAGE_KEY = "cdl-survival-best-score";
 
 interface GameScreenProps {
   players: Player[];
+  teams: Team[];
 }
 
 function readStoredBestScore(): number {
@@ -26,9 +30,17 @@ function readStoredBestScore(): number {
   return Number.isFinite(parsedScore) ? parsedScore : 0;
 }
 
-export function GameScreen({ players }: GameScreenProps) {
+export function GameScreen({ players, teams }: GameScreenProps) {
   const [gameState, setGameState] = useState<GameState>(() =>
     startSurvivalGame(players, readStoredBestScore()),
+  );
+  const playersById = useMemo(
+    () => new Map(players.map((player) => [player.id, player])),
+    [players],
+  );
+  const teamsByTag = useMemo(
+    () => new Map(teams.map((team) => [team.tag, team])),
+    [teams],
   );
 
   useEffect(() => {
@@ -48,7 +60,14 @@ export function GameScreen({ players }: GameScreenProps) {
     setGameState(startSurvivalGame(players, gameState.bestScore));
   }
 
-  if (players.length === 0 || !gameState.currentQuestion) {
+  const currentPlayer = gameState.currentQuestion
+    ? playersById.get(gameState.currentQuestion.playerId) ?? null
+    : null;
+  const currentTeam = currentPlayer
+    ? teamsByTag.get(currentPlayer.teamTag) ?? null
+    : null;
+
+  if (players.length === 0 || !gameState.currentQuestion || !currentPlayer) {
     return (
       <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
         <section className="mx-auto max-w-3xl rounded-[2rem] border border-white/10 bg-white/5 p-8">
@@ -70,8 +89,9 @@ export function GameScreen({ players }: GameScreenProps) {
     <main className="min-h-screen bg-slate-950 px-6 py-10 text-white">
       <section className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr]">
         <PlayerCard
-          imageUrl={currentQuestion.imageUrl}
+          player={currentPlayer}
           score={gameState.score}
+          team={currentTeam}
         />
 
         <div className="flex flex-col gap-6">
