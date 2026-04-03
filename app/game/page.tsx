@@ -1,5 +1,8 @@
-import { GamePlaceholder } from "@/src/features/game/components/game-placeholder";
+import { GameScreen } from "@/src/features/game/components/game-screen";
+import { localPlayerRepository } from "@/src/lib/data/local-player-repository";
 
-export default function GamePage() {
-  return <GamePlaceholder />;
+export default async function GamePage() {
+  const players = await localPlayerRepository.getPlayers();
+
+  return <GameScreen players={players} />;
 }
