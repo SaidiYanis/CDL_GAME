@@ -10,6 +10,17 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    function isOwnedModeDocument(documentId) {
+      return isSignedIn()
+        && (
+          documentId == request.auth.uid + "_guess-player"
+          || documentId == request.auth.uid + "_age-duel"
+          || documentId == request.auth.uid + "_title-duel"
+          || documentId == request.auth.uid + "_rating-duel"
+          || documentId == request.auth.uid + "_role-sort"
+        );
+    }
+
     function isGameMode(modeId) {
       return modeId == "guess-player"
         || modeId == "age-duel"
@@ -130,7 +141,7 @@ service cloud.firestore {
     }
 
     match /userGameStats/{statsId} {
-      allow get: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow get: if isOwnedModeDocument(statsId);
       allow list: if false;
       allow create, update: if isSignedIn() && isValidUserGameStats(statsId);
       allow delete: if false;
