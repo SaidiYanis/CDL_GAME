@@ -10,12 +10,12 @@ export function GamePlaceholder() {
 
         <div className="flex flex-col gap-5">
           <h1 className="text-4xl font-black tracking-[-0.04em] sm:text-6xl">
-            Le gameplay arrive a l'US5.
+            Le gameplay arrive a l&apos;US5.
           </h1>
           <p className="max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
             Prochaine etape : definir les types metier et construire un
-            repository local capable d'exploiter tes images, meme si les noms et
-            infos joueurs ne sont pas encore normalises.
+            repository local capable d&apos;exploiter tes images, meme si les
+            noms et infos joueurs ne sont pas encore normalises.
           </p>
         </div>
 
