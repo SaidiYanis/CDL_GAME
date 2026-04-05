@@ -13,9 +13,12 @@ export function AnswerInput({
   playerNames,
 }: AnswerInputProps) {
   const [answerValue, setAnswerValue] = useState("");
+  const [isSuggestionListOpen, setIsSuggestionListOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const normalizedAnswerValue = normalizeAnswer(answerValue);
-  const shouldShowSuggestions = normalizedAnswerValue.length >= 2;
+  const shouldShowSuggestions =
+    isSuggestionListOpen && normalizedAnswerValue.length >= 2;
   const suggestions = useMemo(() => {
     if (!shouldShowSuggestions) {
       return [];
@@ -67,31 +70,61 @@ export function AnswerInput({
 
     onSubmitAnswer(answerValue);
     setAnswerValue("");
+    setIsSuggestionListOpen(false);
   }
 
   function handleSelectSuggestion(playerName: string) {
     setAnswerValue(playerName);
+    setIsSuggestionListOpen(false);
     window.requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
   }
 
+  function handleInputBlur(event: React.FocusEvent<HTMLDivElement>) {
+    const nextFocusedElement = event.relatedTarget as Node | null;
+
+    if (
+      nextFocusedElement &&
+      containerRef.current?.contains(nextFocusedElement)
+    ) {
+      return;
+    }
+
+    setIsSuggestionListOpen(false);
+  }
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="relative">
+      <div
+        ref={containerRef}
+        onBlur={handleInputBlur}
+        className="relative"
+      >
         <input
           ref={inputRef}
           type="text"
           value={answerValue}
           disabled={disabled}
-          onChange={(event) => setAnswerValue(event.target.value)}
+          onChange={(event) => {
+            setAnswerValue(event.target.value);
+            setIsSuggestionListOpen(true);
+          }}
+          onFocus={() => {
+            if (normalizeAnswer(answerValue).length >= 2) {
+              setIsSuggestionListOpen(true);
+            }
+          }}
           placeholder="Tape le pseudo du joueur"
           autoComplete="off"
           className="w-full rounded-3xl border border-white/10 bg-slate-900/60 px-5 py-4 text-sm font-semibold tracking-[0.08em] text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/50 sm:px-6 sm:py-5"
         />
 
         {shouldShowSuggestions && suggestions.length > 0 ? (
-          <div className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-20 overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950/95 shadow-2xl shadow-black/30 backdrop-blur-sm">
+          <div
+            onMouseLeave={() => setIsSuggestionListOpen(false)}
+            className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-20 overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950/95 shadow-2xl shadow-black/30 backdrop-blur-sm"
+          >
             <p className="border-b border-white/10 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400 sm:px-5">
               Suggestions joueurs
             </p>
