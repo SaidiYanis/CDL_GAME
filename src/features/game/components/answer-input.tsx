@@ -150,6 +150,7 @@ export function AnswerInput({
                   <button
                     type="button"
                     disabled={disabled}
+                    onPointerDown={(event) => event.preventDefault()}
                     onClick={() => handleSelectSuggestion(playerName)}
                     className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold tracking-[0.06em] text-white transition-colors hover:bg-emerald-400/10 hover:text-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5"
                   >

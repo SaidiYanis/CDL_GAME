@@ -30,7 +30,7 @@ interface GameScreenProps {
 export function GameScreen({ players, teams }: GameScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
-  const headingRef = useRef<HTMLElement | null>(null);
+  const roundTopRef = useRef<HTMLDivElement | null>(null);
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -194,7 +194,7 @@ export function GameScreen({ players, teams }: GameScreenProps) {
     ? `${gameState.currentQuestion.playerId}-${gameState.currentQuestion.mode}-${gameState.score}`
     : "idle";
 
-  useAutoScrollOnRoundChange(headingRef, survivalRoundKey);
+  useAutoScrollOnRoundChange(roundTopRef, survivalRoundKey);
 
   if (apiErrorMessage) {
     return (
@@ -226,7 +226,6 @@ export function GameScreen({ players, teams }: GameScreenProps) {
           <ScoreDisplay bestScore={0} score={0} />
 
           <section
-            ref={headingRef}
             className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8"
           >
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
@@ -256,7 +255,10 @@ export function GameScreen({ players, teams }: GameScreenProps) {
           shouldConfirmNavigation={!isGameOver}
         />
 
-        <div className="grid gap-5 sm:gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+        <div
+          ref={roundTopRef}
+          className="grid gap-5 sm:gap-8 lg:grid-cols-[0.9fr_1.1fr]"
+        >
           <PlayerCard
             player={currentPlayer}
             revealTeam={gameState.score >= SCORE_FOR_TEAM_HINT}
