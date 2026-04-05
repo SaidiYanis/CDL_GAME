@@ -1,10 +1,53 @@
 import { FormEvent, useMemo, useRef, useState } from "react";
 import { normalizeAnswer } from "@/src/lib/utils/normalize-answer";
 
+const MIN_SEARCH_LENGTH = 2;
+const MAX_SUGGESTIONS = 6;
+
 interface AnswerInputProps {
   disabled?: boolean;
   onSubmitAnswer: (answer: string) => void;
   playerNames: string[];
+}
+
+interface SuggestionMatch {
+  includes: boolean;
+  playerName: string;
+  startsWith: boolean;
+}
+
+function createSuggestionMatch(
+  playerName: string,
+  normalizedQuery: string,
+): SuggestionMatch | null {
+  const normalizedPlayerName = normalizeAnswer(playerName);
+  const startsWith = normalizedPlayerName.startsWith(normalizedQuery);
+  const includes = normalizedPlayerName.includes(normalizedQuery);
+
+  if (!startsWith && !includes) {
+    return null;
+  }
+
+  return {
+    includes,
+    playerName,
+    startsWith,
+  };
+}
+
+function compareSuggestionMatches(
+  leftMatch: SuggestionMatch,
+  rightMatch: SuggestionMatch,
+): number {
+  if (leftMatch.startsWith !== rightMatch.startsWith) {
+    return leftMatch.startsWith ? -1 : 1;
+  }
+
+  if (leftMatch.includes !== rightMatch.includes) {
+    return leftMatch.includes ? -1 : 1;
+  }
+
+  return leftMatch.playerName.localeCompare(rightMatch.playerName);
 }
 
 export function AnswerInput({
@@ -18,47 +61,20 @@ export function AnswerInput({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const normalizedAnswerValue = normalizeAnswer(answerValue);
   const shouldShowSuggestions =
-    isSuggestionListOpen && normalizedAnswerValue.length >= 2;
+    isSuggestionListOpen && normalizedAnswerValue.length >= MIN_SEARCH_LENGTH;
   const suggestions = useMemo(() => {
     if (!shouldShowSuggestions) {
       return [];
     }
 
-    const rankedMatches = playerNames
-      .map((playerName) => {
-        const normalizedPlayerName = normalizeAnswer(playerName);
-        const startsWith = normalizedPlayerName.startsWith(normalizedAnswerValue);
-        const includes = normalizedPlayerName.includes(normalizedAnswerValue);
-
-        if (!startsWith && !includes) {
-          return null;
-        }
-
-        return {
-          includes,
-          playerName,
-          startsWith,
-        };
-      })
-      .filter(
-        (
-          match,
-        ): match is { includes: boolean; playerName: string; startsWith: boolean } =>
-          match !== null,
+    return playerNames
+      .map((playerName) =>
+        createSuggestionMatch(playerName, normalizedAnswerValue),
       )
-      .sort((leftMatch, rightMatch) => {
-        if (leftMatch.startsWith !== rightMatch.startsWith) {
-          return leftMatch.startsWith ? -1 : 1;
-        }
-
-        if (leftMatch.includes !== rightMatch.includes) {
-          return leftMatch.includes ? -1 : 1;
-        }
-
-        return leftMatch.playerName.localeCompare(rightMatch.playerName);
-      });
-
-    return rankedMatches.slice(0, 6).map((match) => match.playerName);
+      .filter((match): match is SuggestionMatch => match !== null)
+      .sort(compareSuggestionMatches)
+      .slice(0, MAX_SUGGESTIONS)
+      .map((match) => match.playerName);
   }, [normalizedAnswerValue, playerNames, shouldShowSuggestions]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -77,7 +93,7 @@ export function AnswerInput({
     setAnswerValue(playerName);
     setIsSuggestionListOpen(false);
     window.requestAnimationFrame(() => {
-      inputRef.current?.focus();
+      inputRef.current?.blur();
     });
   }
 
@@ -111,7 +127,7 @@ export function AnswerInput({
             setIsSuggestionListOpen(true);
           }}
           onFocus={() => {
-            if (normalizeAnswer(answerValue).length >= 2) {
+            if (normalizedAnswerValue.length >= MIN_SEARCH_LENGTH) {
               setIsSuggestionListOpen(true);
             }
           }}
