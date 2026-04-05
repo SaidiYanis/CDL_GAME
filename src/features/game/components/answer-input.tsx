@@ -1,17 +1,62 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useRef, useState } from "react";
+import { normalizeAnswer } from "@/src/lib/utils/normalize-answer";
 
 interface AnswerInputProps {
   disabled?: boolean;
   onSubmitAnswer: (answer: string) => void;
-  playerId: string;
+  playerNames: string[];
 }
 
 export function AnswerInput({
   disabled = false,
   onSubmitAnswer,
-  playerId,
+  playerNames,
 }: AnswerInputProps) {
   const [answerValue, setAnswerValue] = useState("");
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const normalizedAnswerValue = normalizeAnswer(answerValue);
+  const shouldShowSuggestions = normalizedAnswerValue.length >= 2;
+  const suggestions = useMemo(() => {
+    if (!shouldShowSuggestions) {
+      return [];
+    }
+
+    const rankedMatches = playerNames
+      .map((playerName) => {
+        const normalizedPlayerName = normalizeAnswer(playerName);
+        const startsWith = normalizedPlayerName.startsWith(normalizedAnswerValue);
+        const includes = normalizedPlayerName.includes(normalizedAnswerValue);
+
+        if (!startsWith && !includes) {
+          return null;
+        }
+
+        return {
+          includes,
+          playerName,
+          startsWith,
+        };
+      })
+      .filter(
+        (
+          match,
+        ): match is { includes: boolean; playerName: string; startsWith: boolean } =>
+          match !== null,
+      )
+      .sort((leftMatch, rightMatch) => {
+        if (leftMatch.startsWith !== rightMatch.startsWith) {
+          return leftMatch.startsWith ? -1 : 1;
+        }
+
+        if (leftMatch.includes !== rightMatch.includes) {
+          return leftMatch.includes ? -1 : 1;
+        }
+
+        return leftMatch.playerName.localeCompare(rightMatch.playerName);
+      });
+
+    return rankedMatches.slice(0, 6).map((match) => match.playerName);
+  }, [normalizedAnswerValue, playerNames, shouldShowSuggestions]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -24,17 +69,52 @@ export function AnswerInput({
     setAnswerValue("");
   }
 
+  function handleSelectSuggestion(playerName: string) {
+    setAnswerValue(playerName);
+    window.requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+  }
+
   return (
-    <form key={playerId} onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <input
-        type="text"
-        value={answerValue}
-        disabled={disabled}
-        onChange={(event) => setAnswerValue(event.target.value)}
-        placeholder="Tape le pseudo du joueur"
-        autoComplete="off"
-        className="w-full rounded-3xl border border-white/10 bg-slate-900/60 px-6 py-5 text-sm font-semibold uppercase tracking-[0.18em] text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/50"
-      />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className="relative">
+        <input
+          ref={inputRef}
+          type="text"
+          value={answerValue}
+          disabled={disabled}
+          onChange={(event) => setAnswerValue(event.target.value)}
+          placeholder="Tape le pseudo du joueur"
+          autoComplete="off"
+          className="w-full rounded-3xl border border-white/10 bg-slate-900/60 px-5 py-4 text-sm font-semibold tracking-[0.08em] text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/50 sm:px-6 sm:py-5"
+        />
+
+        {shouldShowSuggestions && suggestions.length > 0 ? (
+          <div className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-20 overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950/95 shadow-2xl shadow-black/30 backdrop-blur-sm">
+            <p className="border-b border-white/10 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400 sm:px-5">
+              Suggestions joueurs
+            </p>
+            <ul className="max-h-72 overflow-y-auto py-2">
+              {suggestions.map((playerName) => (
+                <li key={playerName}>
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => handleSelectSuggestion(playerName)}
+                    className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold tracking-[0.06em] text-white transition-colors hover:bg-emerald-400/10 hover:text-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5"
+                  >
+                    <span>{playerName}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                      Remplir
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
       <button
         type="submit"
         disabled={disabled}

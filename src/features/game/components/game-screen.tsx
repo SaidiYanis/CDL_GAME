@@ -50,6 +50,7 @@ export function GameScreen({ players, teams }: GameScreenProps) {
     () => new Map(players.map((player) => [player.id, player])),
     [players],
   );
+  const playerNames = useMemo(() => players.map((player) => player.name), [players]);
   const teamsByTag = useMemo(
     () => new Map(teams.map((team) => [team.tag, team])),
     [teams],
@@ -291,9 +292,10 @@ export function GameScreen({ players, teams }: GameScreenProps) {
             <div className="mt-8">
               {currentQuestion.mode === "free-input" ? (
                 <AnswerInput
+                  key={currentQuestion.playerId}
                   disabled={isGameOver || isSubmittingAnswer}
                   onSubmitAnswer={handleSubmitAnswer}
-                  playerId={currentQuestion.playerId}
+                  playerNames={playerNames}
                 />
               ) : (
                 <AnswerOptions

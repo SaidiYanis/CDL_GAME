@@ -241,7 +241,7 @@ export function AgeDuelScreen({ players, teams }: AgeDuelScreenProps) {
             Duel d&apos;age
           </p>
           <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-5xl">
-            Duel d&apos;age sans ambiguite.
+            Duel d&apos;age
           </h1>
           <RoundContextBanner
             emphasis={
