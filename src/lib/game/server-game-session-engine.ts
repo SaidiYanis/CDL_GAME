@@ -88,11 +88,24 @@ export function serializeServerGameState(
     };
   }
 
-  if (
-    modeId === "age-duel" ||
-    modeId === "title-duel" ||
-    modeId === "rating-duel"
-  ) {
+  if (modeId === "age-duel") {
+    const duelState = gameState as DuelGameState;
+    const currentQuestion = duelState.currentQuestion;
+
+    if (!currentQuestion) {
+      return duelState;
+    }
+
+    return {
+      ...duelState,
+      currentQuestion: {
+        ...currentQuestion,
+        correctAnswer: "left",
+      },
+    };
+  }
+
+  if (modeId === "title-duel" || modeId === "rating-duel") {
     const duelState = gameState as DuelGameState;
     const currentQuestion = duelState.currentQuestion;
 

@@ -8,6 +8,7 @@ import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { RoundSuccessOverlay } from "@/src/features/game/components/round-success-overlay";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import { CountryFlagLabel } from "@/src/features/common/components/country-flag-label";
+import { useAutoScrollOnRoundChange } from "@/src/features/game/hooks/use-auto-scroll-on-round-change";
 import {
   createEmptyRoleAssignments,
   type RoleAssignments,
@@ -51,6 +52,7 @@ function getCardBorderColor(
 export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
+  const headingRef = useRef<HTMLElement | null>(null);
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
   const [feedbackStatus, setFeedbackStatus] = useState<"correct" | null>(null);
   const [isSubmittingRound, setIsSubmittingRound] = useState(false);
@@ -86,6 +88,11 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
     (player) => assignments[player.id] !== null,
   );
   const isGameOver = gameState.status === "lost";
+  const roleRoundKey = gameState.currentQuestion
+    ? `${gameState.currentQuestion.playerIds.join("__")}-${gameState.score}`
+    : "idle";
+
+  useAutoScrollOnRoundChange(headingRef, roleRoundKey);
 
   const { syncCurrentRunLoss } = useGameScoreSync({
     bestScore: gameState.bestScore,
@@ -276,7 +283,10 @@ export function RoleSortScreen({ players, teams }: RoleSortScreenProps) {
           score={gameState.score}
         />
 
-        <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
+        <section
+          ref={headingRef}
+          className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8"
+        >
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
             Tri AR / SMG
           </p>

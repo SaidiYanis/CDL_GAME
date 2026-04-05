@@ -20,10 +20,6 @@ function resolveAgeAnswer(
   const leftTimestamp = Date.parse(leftPlayer.birthDate ?? "");
   const rightTimestamp = Date.parse(rightPlayer.birthDate ?? "");
 
-  if (leftTimestamp === rightTimestamp) {
-    return "same";
-  }
-
   if (prompt === "Plus jeune") {
     return leftTimestamp > rightTimestamp ? "left" : "right";
   }
@@ -32,10 +28,6 @@ function resolveAgeAnswer(
 }
 
 function formatAgeAnswer(question: DuelGameQuestion, playersById: Map<string, Player>): string {
-  if (question.correctAnswer === "same") {
-    return "Same";
-  }
-
   const winnerId =
     question.correctAnswer === "left"
       ? question.leftPlayerId
@@ -133,6 +125,11 @@ export function createNextAgeDuelQuestion(
     eligiblePlayers.flatMap((leftPlayer, leftIndex) =>
       eligiblePlayers
         .slice(leftIndex + 1)
+        .filter(
+          (rightPlayer) =>
+            Date.parse(leftPlayer.birthDate ?? "") !==
+            Date.parse(rightPlayer.birthDate ?? ""),
+        )
         .map((rightPlayer) => ({ leftPlayer, prompt, rightPlayer })),
     ),
   ).filter(

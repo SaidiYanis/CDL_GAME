@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 const survivalRules = [
-  "Devine le joueur CDL affiche a l'ecran.",
-  "Chaque bonne reponse ajoute 1 point a ton score.",
-  "Une seule erreur termine la partie instantanement.",
+  "Choisis un mode puis enchaine les bonnes reponses pour faire monter ton score.",
+  "Le principe reste le meme partout : une erreur suffit pour stopper la run.",
+  "Bats ton record, compare-toi au ranking global et adapte-toi aux regles propres a chaque mode.",
 ];
 
 const featureHighlights = [

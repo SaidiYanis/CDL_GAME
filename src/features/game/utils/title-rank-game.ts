@@ -218,8 +218,8 @@ export function createEmptyTitleRankAssignments(
 
 export function getTitleRankRoundLabel(question: TitleRankGameQuestion): string {
   return question.comparisonMode === "cumulative"
-    ? "Round bonus : Major + World cumules"
-    : "Compare les Major uniquement";
+    ? "La cible se base sur Major + World additionnes"
+    : "La cible se base uniquement sur les titres Major";
 }
 
 export function startTitleRankGame(

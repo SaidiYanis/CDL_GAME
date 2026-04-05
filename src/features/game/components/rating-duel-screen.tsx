@@ -7,6 +7,7 @@ import { GameModeNavigation } from "@/src/features/game/components/game-mode-nav
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { RoundSuccessOverlay } from "@/src/features/game/components/round-success-overlay";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
+import { useAutoScrollOnRoundChange } from "@/src/features/game/hooks/use-auto-scroll-on-round-change";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
@@ -26,6 +27,7 @@ interface RatingDuelScreenProps {
 export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
+  const headingRef = useRef<HTMLElement | null>(null);
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -63,6 +65,11 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
     ? teamsByTag.get(rightPlayer.teamTag) ?? null
     : null;
   const isGameOver = gameState.status === "lost";
+  const ratingRoundKey = gameState.currentQuestion
+    ? `${gameState.currentQuestion.leftPlayerId}-${gameState.currentQuestion.rightPlayerId}-${gameState.score}`
+    : "idle";
+
+  useAutoScrollOnRoundChange(headingRef, ratingRoundKey);
 
   const { syncCurrentRunLoss } = useGameScoreSync({
     bestScore: gameState.bestScore,
@@ -225,7 +232,10 @@ export function RatingDuelScreen({ players, teams }: RatingDuelScreenProps) {
           score={gameState.score}
         />
 
-        <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 text-center sm:rounded-[2rem] sm:p-8">
+        <section
+          ref={headingRef}
+          className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 text-center sm:rounded-[2rem] sm:p-8"
+        >
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
             Duel note BP
           </p>

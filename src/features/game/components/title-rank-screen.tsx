@@ -6,8 +6,10 @@ import { CountryFlagLabel } from "@/src/features/common/components/country-flag-
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
 import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
+import { RoundContextBanner } from "@/src/features/game/components/round-context-banner";
 import { RoundSuccessOverlay } from "@/src/features/game/components/round-success-overlay";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
+import { useAutoScrollOnRoundChange } from "@/src/features/game/hooks/use-auto-scroll-on-round-change";
 import {
   createEmptyTitleRankAssignments,
   getExpectedTitleRankAnswer,
@@ -65,6 +67,7 @@ function getPlayerCardBorderColor(
 export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
+  const headingRef = useRef<HTMLElement | null>(null);
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
   const [feedbackStatus, setFeedbackStatus] = useState<"correct" | null>(null);
   const [isSubmittingRound, setIsSubmittingRound] = useState(false);
@@ -100,6 +103,11 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
     roundPlayers.length > 0 &&
     roundPlayers.every((player) => assignments[player.id] !== null);
   const isGameOver = gameState.status === "lost";
+  const titleRankRoundKey = gameState.currentQuestion
+    ? `${gameState.currentQuestion.playerIds.join("__")}-${gameState.currentQuestion.targetTitleCount}-${gameState.currentQuestion.comparisonMode}-${gameState.score}`
+    : "idle";
+
+  useAutoScrollOnRoundChange(headingRef, titleRankRoundKey);
 
   const { syncCurrentRunLoss } = useGameScoreSync({
     bestScore: gameState.bestScore,
@@ -292,7 +300,10 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
         />
         <ScoreDisplay bestScore={gameState.bestScore} score={gameState.score} />
 
-        <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
+        <section
+          ref={headingRef}
+          className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8"
+        >
           <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="max-w-3xl">
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
@@ -312,9 +323,19 @@ export function TitleRankScreen({ players, teams }: TitleRankScreenProps) {
               </p>
             </div>
           </div>
-          <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">
-            {getTitleRankRoundLabel(currentQuestion)}
-          </p>
+          <RoundContextBanner
+            emphasis={
+              currentQuestion.comparisonMode === "cumulative"
+                ? "Mode bonus : Major + World"
+                : "Mode standard : Major"
+            }
+            label={getTitleRankRoundLabel(currentQuestion)}
+            tone={
+              currentQuestion.comparisonMode === "cumulative"
+                ? "violet"
+                : "emerald"
+            }
+          />
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:mt-4 sm:text-base sm:leading-8">
             Pour chaque joueur, choisis + s&apos;il a plus de titres que la
             cible, = s&apos;il est exactement au meme total, ou - s&apos;il en a

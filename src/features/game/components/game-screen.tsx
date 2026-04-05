@@ -9,6 +9,7 @@ import { GameOverCard } from "@/src/features/game/components/game-over-card";
 import { PlayerCard } from "@/src/features/game/components/player-card";
 import { RoundSuccessOverlay } from "@/src/features/game/components/round-success-overlay";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
+import { useAutoScrollOnRoundChange } from "@/src/features/game/hooks/use-auto-scroll-on-round-change";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
@@ -29,6 +30,7 @@ interface GameScreenProps {
 export function GameScreen({ players, teams }: GameScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
+  const headingRef = useRef<HTMLElement | null>(null);
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -187,6 +189,11 @@ export function GameScreen({ players, teams }: GameScreenProps) {
   const currentTeam = currentPlayer
     ? teamsByTag.get(currentPlayer.teamTag) ?? null
     : null;
+  const survivalRoundKey = gameState.currentQuestion
+    ? `${gameState.currentQuestion.playerId}-${gameState.currentQuestion.mode}-${gameState.score}`
+    : "idle";
+
+  useAutoScrollOnRoundChange(headingRef, survivalRoundKey);
 
   if (apiErrorMessage) {
     return (
@@ -217,7 +224,10 @@ export function GameScreen({ players, teams }: GameScreenProps) {
           <GameModeNavigation shouldConfirmNavigation={false} />
           <ScoreDisplay bestScore={0} score={0} />
 
-          <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8">
+          <section
+            ref={headingRef}
+            className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 sm:rounded-[2rem] sm:p-8"
+          >
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
               Devine le joueur
             </p>

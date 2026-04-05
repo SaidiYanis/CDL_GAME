@@ -5,8 +5,10 @@ import { DuelPlayerCard } from "@/src/features/game/components/duel-player-card"
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
 import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
+import { RoundContextBanner } from "@/src/features/game/components/round-context-banner";
 import { RoundSuccessOverlay } from "@/src/features/game/components/round-success-overlay";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
+import { useAutoScrollOnRoundChange } from "@/src/features/game/hooks/use-auto-scroll-on-round-change";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
 import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
@@ -26,6 +28,7 @@ interface AgeDuelScreenProps {
 export function AgeDuelScreen({ players, teams }: AgeDuelScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
+  const headingRef = useRef<HTMLElement | null>(null);
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -63,6 +66,11 @@ export function AgeDuelScreen({ players, teams }: AgeDuelScreenProps) {
     ? teamsByTag.get(rightPlayer.teamTag) ?? null
     : null;
   const isGameOver = gameState.status === "lost";
+  const ageRoundKey = gameState.currentQuestion
+    ? `${gameState.currentQuestion.prompt}-${gameState.currentQuestion.leftPlayerId}-${gameState.currentQuestion.rightPlayerId}-${gameState.score}`
+    : "idle";
+
+  useAutoScrollOnRoundChange(headingRef, ageRoundKey);
 
   const { syncCurrentRunLoss } = useGameScoreSync({
     bestScore: gameState.bestScore,
@@ -225,13 +233,33 @@ export function AgeDuelScreen({ players, teams }: AgeDuelScreenProps) {
           score={gameState.score}
         />
 
-        <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 text-center sm:rounded-[2rem] sm:p-8">
+        <section
+          ref={headingRef}
+          className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 text-center sm:rounded-[2rem] sm:p-8"
+        >
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
             Duel d&apos;age
           </p>
           <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-5xl">
-            Qui est le {gameState.currentQuestion.prompt.toLowerCase()} ?
+            Duel d&apos;age sans ambiguite.
           </h1>
+          <RoundContextBanner
+            emphasis={
+              gameState.currentQuestion.prompt === "Plus jeune"
+                ? "Objectif actuel : plus jeune"
+                : "Objectif actuel : plus vieux"
+            }
+            label={
+              gameState.currentQuestion.prompt === "Plus jeune"
+                ? "Choisis le joueur ne le plus recemment parmi les deux."
+                : "Choisis le joueur ne le moins recemment parmi les deux."
+            }
+            tone={
+              gameState.currentQuestion.prompt === "Plus jeune"
+                ? "sky"
+                : "amber"
+            }
+          />
 
           {isGameOver ? (
             <div className="mt-8 text-left">
@@ -260,23 +288,6 @@ export function AgeDuelScreen({ players, teams }: AgeDuelScreenProps) {
               }`}
             >
               {leftPlayer.name}
-            </button>
-            <button
-              type="button"
-              disabled={
-                isGameOver || isSubmittingAnswer || feedbackStatus !== null
-              }
-              onClick={() => handleSubmitAnswer("same")}
-              className={`rounded-full border px-6 py-3 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 sm:px-8 sm:py-4 sm:text-sm ${
-                selectedAnswer === "same" && feedbackStatus === "correct"
-                  ? "border-emerald-300/70 bg-emerald-400/15 text-emerald-100"
-                  : selectedAnswer === "same" &&
-                      feedbackStatus === "incorrect"
-                    ? "border-rose-300/70 bg-rose-500/15 text-rose-100"
-                    : "border-white/15 text-white hover:border-white/30 hover:bg-white/5"
-              }`}
-            >
-              Same
             </button>
             <button
               type="button"

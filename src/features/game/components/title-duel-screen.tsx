@@ -5,11 +5,14 @@ import { DuelPlayerCard } from "@/src/features/game/components/duel-player-card"
 import { GameDataFallback } from "@/src/features/game/components/game-data-fallback";
 import { GameModeNavigation } from "@/src/features/game/components/game-mode-navigation";
 import { GameOverCard } from "@/src/features/game/components/game-over-card";
+import { RoundContextBanner } from "@/src/features/game/components/round-context-banner";
 import { RoundSuccessOverlay } from "@/src/features/game/components/round-success-overlay";
 import { ScoreDisplay } from "@/src/features/game/components/score-display";
 import {
   getTitleDuelRoundLabel,
+  isCumulativeTitleRound,
 } from "@/src/features/game/utils/title-duel-game";
+import { useAutoScrollOnRoundChange } from "@/src/features/game/hooks/use-auto-scroll-on-round-change";
 import { useGameScoreSync } from "@/src/features/scores/hooks/use-game-score-sync";
 import { playGameFeedbackSound } from "@/src/lib/audio/game-feedback-sounds";
 import { localScoreRepository } from "@/src/lib/data/local-score-repository";
@@ -29,6 +32,7 @@ interface TitleDuelScreenProps {
 export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
   const hasLoadedLocalBestScoreRef = useRef(false);
   const feedbackTimeoutRef = useRef<number | null>(null);
+  const headingRef = useRef<HTMLElement | null>(null);
   const [apiErrorMessage, setApiErrorMessage] = useState<string | null>(null);
   const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -66,6 +70,12 @@ export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
     ? teamsByTag.get(rightPlayer.teamTag) ?? null
     : null;
   const isGameOver = gameState.status === "lost";
+  const isCumulativeRound = isCumulativeTitleRound(gameState.score);
+  const titleRoundKey = gameState.currentQuestion
+    ? `${gameState.currentQuestion.leftPlayerId}-${gameState.currentQuestion.rightPlayerId}-${gameState.score}`
+    : "idle";
+
+  useAutoScrollOnRoundChange(headingRef, titleRoundKey);
 
   const { syncCurrentRunLoss } = useGameScoreSync({
     bestScore: gameState.bestScore,
@@ -228,16 +238,25 @@ export function TitleDuelScreen({ players, teams }: TitleDuelScreenProps) {
           score={gameState.score}
         />
 
-        <section className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 text-center sm:rounded-[2rem] sm:p-8">
+        <section
+          ref={headingRef}
+          className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5 text-center sm:rounded-[2rem] sm:p-8"
+        >
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">
             Duel palmares
           </p>
           <h1 className="mt-4 text-3xl font-black tracking-[-0.04em] text-white sm:mt-5 sm:text-5xl">
             Qui a le plus de titres ?
           </h1>
-          <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">
-            {getTitleDuelRoundLabel(gameState.score)}
-          </p>
+          <RoundContextBanner
+            emphasis={
+              isCumulativeRound
+                ? "Mode bonus : Major + World"
+                : "Mode standard : Major"
+            }
+            label={getTitleDuelRoundLabel(gameState.score)}
+            tone={isCumulativeRound ? "violet" : "emerald"}
+          />
 
           {isGameOver ? (
             <div className="mt-8 text-left">

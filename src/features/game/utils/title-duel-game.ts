@@ -7,8 +7,8 @@ export function isCumulativeTitleRound(score: number): boolean {
 
 export function getTitleDuelRoundLabel(score: number): string {
   return isCumulativeTitleRound(score)
-    ? "Round bonus : compare Major + World cumules."
-    : "Compare les Major uniquement.";
+    ? "Ce round compare les titres Major et World additionnes."
+    : "Ce round compare uniquement les titres Major.";
 }
 
 function getTotalTitles(player: Player): number {
