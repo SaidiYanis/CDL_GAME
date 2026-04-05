@@ -18,14 +18,25 @@ export function playGameFeedbackSound(feedbackType: GameFeedbackSound): void {
     return;
   }
 
-  const soundVariant =
-    Math.random() < RARE_EVENT_RATE
-      ? FEEDBACK_SOUNDS[feedbackType].rare
-      : FEEDBACK_SOUNDS[feedbackType].default;
-  const feedbackAudio = new Audio(soundVariant);
+  const shouldPlayRareVariant = Math.random() < RARE_EVENT_RATE;
+  const soundsToPlay =
+    feedbackType === "win" && shouldPlayRareVariant
+      ? [
+          FEEDBACK_SOUNDS[feedbackType].default,
+          FEEDBACK_SOUNDS[feedbackType].rare,
+        ]
+      : [
+          shouldPlayRareVariant
+            ? FEEDBACK_SOUNDS[feedbackType].rare
+            : FEEDBACK_SOUNDS[feedbackType].default,
+        ];
 
-  feedbackAudio.volume = 0.65;
-  void feedbackAudio.play().catch(() => {
-    // Browser autoplay restrictions can reject audio if the user gesture was interrupted.
+  soundsToPlay.forEach((soundPath) => {
+    const feedbackAudio = new Audio(soundPath);
+
+    feedbackAudio.volume = 0.65;
+    void feedbackAudio.play().catch(() => {
+      // Browser autoplay restrictions can reject audio if the user gesture was interrupted.
+    });
   });
 }
